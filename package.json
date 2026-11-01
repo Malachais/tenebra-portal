@@ -1,0 +1,20 @@
+{
+  "name": "blog-tenebra",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Arquivo de Tenebra — blog com PostgreSQL e painel editorial",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "test": "node --env-file=.env test/api.test.js && node --test test/seeds.test.js test/ui.test.js",
+    "seed:content": "node --env-file=.env seeds/run.js",
+    "content:publish-drafts": "node --env-file=.env scripts/publish-drafts.js",
+    "admin:create": "node --env-file=.env scripts/create-admin.js",
+    "admin:malachais": "node --env-file=.env scripts/create-mal-achais-admin.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

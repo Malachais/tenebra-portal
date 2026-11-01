@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" role="img" aria-labelledby="title desc">
+  <title id="title">Esquema provisório do mapa de Tenebra</title>
+  <desc id="desc">Placeholder sem geografia oficial. O atlas aguarda um mapa aprovado pelo criador.</desc>
+  <rect width="900" height="360" rx="12" fill="#e7dfc9" stroke="#8c7955" stroke-width="3" stroke-dasharray="9 8"/>
+  <path d="M70 240 Q160 120 260 205 T440 168 T630 210 T820 120" fill="none" stroke="#9a8c69" stroke-width="2" stroke-dasharray="4 9"/>
+  <g fill="#6c624b" font-family="Georgia,serif" text-anchor="middle"><text x="450" y="152" font-size="30">Atlas em preparação</text><text x="450" y="195" font-size="18">ESQUEMA PROVISÓRIO · SEM GEOGRAFIA OFICIAL</text><text x="450" y="280" font-size="36">ᛉ</text></g>
+</svg>

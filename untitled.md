@@ -1,0 +1,1 @@
+[CHAVE OPENROUTER REMOVIDA — revogue e armazene somente em .env]

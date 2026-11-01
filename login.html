@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#21190f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/motion.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="js/api.js" defer></script>
+  <script src="js/fx.js" defer></script>
+  <title>Acesso restrito — Arquivo de Tenebra</title>
+  <script src="js/login.js" defer></script>
+</head>
+<body class="login-body">
+  <div class="paper-grain" aria-hidden="true"></div>
+  <canvas class="fireflies" id="fireflies" aria-hidden="true"></canvas>
+  <main class="login-wrap">
+    <section class="login-card" id="loginCard" aria-labelledby="loginTitle">
+      <div class="login-seal" aria-hidden="true"><span>✶</span></div>
+      <p class="eyebrow"><span class="eyebrow-line"></span> Acesso restrito · Arquivo nº 000</p>
+      <h1 id="loginTitle">Somente <em>arquivistas</em></h1>
+      <p class="login-lead">Entre para acessar suas fichas, conversar com a comunidade ou administrar o arquivo.</p>
+      <div class="flash flash-err" id="loginError" role="alert" hidden></div>
+      <form class="login-form" id="loginForm" novalidate>
+        <label class="field"><span>Usuário</span>
+          <input type="text" id="usuario" required autofocus autocomplete="username" maxlength="60">
+        </label>
+        <label class="field"><span>Senha</span>
+          <div class="pass-row">
+            <input type="password" id="senha" required autocomplete="current-password" maxlength="200">
+            <button type="button" class="pass-toggle" id="passToggle" aria-label="Mostrar senha" aria-pressed="false">👁</button>
+          </div>
+        </label>
+        <button class="button button-dark login-submit" id="loginBtn" type="submit">Abrir o arquivo <span>↗</span></button>
+      </form>
+      <p class="login-register-link">Primeira visita? <a class="inline-link" href="register.html">Criar uma conta comunitária</a></p>
+      <a class="text-link back-link" href="index.html">← Voltar ao site</a>
+    </section>
+  </main>
+</body>
+</html>

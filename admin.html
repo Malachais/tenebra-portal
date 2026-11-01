@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#21190f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/motion.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="js/api.js" defer></script>
+  <script src="js/fx.js" defer></script>
+  <title>Painel — Arquivo de Tenebra</title>
+  <script src="js/admin.js" defer></script>
+</head>
+<body class="admin-body" hidden>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="admin-bar">
+    <a class="seal" href="admin.html"><span class="seal-mark">✶</span><span class="seal-name">PAINEL · TENEBRA</span></a>
+    <nav class="admin-nav" aria-label="Painel">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#registros">Registros</a>
+      <a href="#grimorio">Grimório</a>
+      <a href="#bestiario-admin">Bestiário</a>
+      <a href="#eventos-admin">Eventos</a>
+      <a href="#mapa-admin">Mapa</a>
+      <a href="#conquistas-admin">Conquistas</a>
+      <a href="#usuarios">Usuários</a>
+      <a href="#moderacao">Chat</a>
+      <a href="#senha">Alterar senha</a>
+      <a href="index.html" target="_blank" rel="noopener">Ver site ↗</a>
+      <button class="btn btn-ghost" id="logoutBtn" type="button">Sair</button>
+    </nav>
+  </header>
+
+  <main class="admin-main page-shell">
+    <div class="flash" id="flash" role="status" hidden></div>
+
+    <section class="panel admin-dashboard" id="dashboard" data-reveal>
+      <div class="panel-head"><h2>Dashboard</h2><p class="muted">Estado atual dos arquivos e da comunidade.</p></div>
+      <div class="dashboard-stats" id="dashboardStats" aria-live="polite"><p class="muted">Consultando o arquivo…</p></div>
+    </section>
+
+    <div class="admin-head" data-reveal>
+      <div>
+        <p class="eyebrow"><span class="eyebrow-line"></span> Painel do arquivista</p>
+        <h1>Olá, <em id="whoami">arquivista</em></h1>
+      </div>
+      <button class="button button-dark" id="newBtn" type="button">Novo registro <span>+</span></button>
+    </div>
+
+    <div class="stat-row stat-row-4" id="catStats"></div>
+
+    <section class="panel" id="registros" data-reveal>
+      <div class="panel-head">
+        <h2>Registros do blog</h2>
+        <p class="muted">Tudo o que você publicar aqui é gravado no banco e aparece no site na hora.</p>
+      </div>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Categorias"></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Data</th><th>Título</th><th>Categoria</th><th>Status</th><th class="right">Ações</th></tr></thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="grimorio" data-reveal>
+      <div class="panel-head panel-head-actions">
+        <div><h2>Grimório digital</h2><p class="muted">Páginas por categoria, com endereço permanente e publicação controlada.</p></div>
+        <button class="button button-dark" id="newLoreBtn" type="button">Nova página <span>+</span></button>
+      </div>
+      <div class="admin-lore-grid" id="loreAdminList" aria-live="polite"><p class="muted">Carregando páginas…</p></div>
+    </section>
+
+    <section class="panel" id="bestiario-admin" data-reveal>
+      <div class="panel-head panel-head-actions"><div><h2>Bestiário</h2><p class="muted">Ameaça e atributos permanecem sem classificação quando o arquivo não os confirma.</p></div><button class="button button-dark" id="newMonsterBtn" type="button">Nova criatura <span>+</span></button></div>
+      <div class="admin-lore-grid" id="monsterAdminList" aria-live="polite"><p class="muted">Carregando criaturas…</p></div>
+    </section>
+
+    <section class="panel" id="eventos-admin" data-reveal>
+      <div class="panel-head"><h2>Eventos e sessões</h2><p class="muted">Crie encontros e acompanhe inscrições.</p></div>
+      <form class="form-grid" id="eventForm"><label class="field"><span>Título</span><input id="eventTitle" maxlength="140" required></label><label class="field"><span>Data e hora</span><input id="eventDate" type="datetime-local" required></label><label class="field"><span>Mestre (usuário)</span><select id="eventMaster" required></select></label><label class="field"><span>Limite de jogadores (opcional)</span><input id="eventLimit" type="number" min="1" max="200"></label><label class="field"><span>Status</span><select id="eventStatus"><option value="planned">Planejado</option><option value="open">Aberto para inscrição</option><option value="in_progress">Em andamento</option><option value="completed">Concluído</option><option value="archived">Arquivado</option></select></label><label class="field span-2"><span>Descrição</span><textarea id="eventDescription" maxlength="5000" required></textarea></label><div class="form-actions"><button class="button button-dark">Criar evento</button></div></form>
+      <div class="admin-lore-grid" id="adminEvents"></div>
+      <div class="panel-head"><h2>Campanhas</h2><p class="muted">Campanhas publicadas aceitam participantes conforme o status; seus diários respeitam a visibilidade escolhida.</p></div>
+      <form class="form-grid" id="campaignForm"><label class="field"><span>Título</span><input id="campaignTitle" maxlength="160" required></label><label class="field"><span>Status</span><select id="campaignStatus"><option value="planned">Planejada</option><option value="open">Aberta</option><option value="in_progress">Em andamento</option><option value="completed">Concluída</option><option value="archived">Arquivada</option></select></label><label class="field span-2"><span>Descrição</span><textarea id="campaignDescription" maxlength="10000" required></textarea></label><label class="check span-2"><input id="campaignPublished" type="checkbox"><span>Publicar campanha</span></label><div class="form-actions"><button class="button button-dark">Criar campanha</button></div></form>
+      <div class="admin-lore-grid" id="adminCampaigns"></div>
+      <div class="panel-head"><h2>Conectar registros</h2><p class="muted">Use o slug para registros públicos e o ID numérico para fichas de jogador. Apenas administradores podem criar relações.</p></div>
+      <form class="form-grid" id="universeLinkForm"><label class="field"><span>Origem</span><select id="linkSourceType"><option value="lore">Grimório</option><option value="record">Registro</option><option value="monster">Criatura</option><option value="region">Região</option><option value="event">Evento</option><option value="campaign">Campanha</option><option value="character-sheet">Ficha de jogador</option></select></label><label class="field"><span>Slug/ID da origem</span><input id="linkSourceId" maxlength="160" required></label><label class="field"><span>Relação</span><input id="linkRelation" maxlength="80" placeholder="encontrada em, origem, participa de…" required></label><label class="field"><span>Destino</span><select id="linkTargetType"><option value="lore">Grimório</option><option value="record">Registro</option><option value="monster">Criatura</option><option value="region">Região</option><option value="event">Evento</option><option value="campaign">Campanha</option><option value="character-sheet">Ficha de jogador</option></select></label><label class="field"><span>Slug/ID do destino</span><input id="linkTargetId" maxlength="160" required></label><div class="form-actions"><button class="button button-dark">Criar relação</button></div></form>
+    </section>
+    <section class="panel" id="mapa-admin" data-reveal>
+      <div class="panel-head"><h2>Atlas e regiões</h2><p class="muted">As remoções são arquivadas como não publicadas.</p></div>
+      <form class="form-grid" id="regionForm"><label class="field"><span>Nome</span><input id="regionName" maxlength="120" required></label><label class="field"><span>Publicado</span><select id="regionPublished"><option value="true">Sim</option><option value="false">Rascunho</option></select></label><label class="field span-2"><span>Descrição</span><textarea id="regionDescription" maxlength="5000" required></textarea></label><label class="field span-2"><span>História</span><textarea id="regionHistory" maxlength="10000"></textarea></label><label class="field"><span>Facções (JSON lista)</span><textarea id="regionFactions">[]</textarea></label><label class="field"><span>Criaturas (JSON lista)</span><textarea id="regionCreatures">[]</textarea></label><label class="field span-2"><span>Eventos relacionados (JSON lista)</span><textarea id="regionEvents">[]</textarea></label><div class="form-actions"><button class="button button-dark">Criar região</button></div></form><div class="admin-lore-grid" id="adminRegions"></div>
+    </section>
+    <section class="panel" id="usuarios" data-reveal>
+      <div class="panel-head"><h2>Usuários e permissões</h2><p class="muted">Usuários novos começam sem privilégios. Não é possível remover a própria função nem o último administrador.</p></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Conta</th><th>Função</th><th>Criada</th><th>Ação</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+    </section>
+
+    <section class="panel" id="moderacao" data-reveal>
+      <div class="panel-head"><h2>Moderação do chat</h2><p class="muted">Mensagens recentes da comunidade. Remoções passam pela mesma autorização no backend.</p></div>
+      <div class="admin-community-list" id="adminCommunityMessages" aria-live="polite"><p class="muted">Carregando mensagens…</p></div>
+    </section>
+
+    <section class="panel" id="conquistas-admin" data-reveal>
+      <div class="panel-head"><h2>Conquistas</h2><p class="muted">Conquistas só são atribuídas explicitamente por um administrador.</p></div>
+      <form class="form-grid" id="achievementForm"><label class="field"><span>Nome</span><input id="achievementName" maxlength="100" required></label><label class="field span-2"><span>Descrição</span><input id="achievementDescription" maxlength="500"></label><div class="form-actions"><button class="button button-dark">Criar conquista</button></div></form>
+      <form class="form-grid" id="awardForm"><label class="field"><span>Usuário</span><select id="awardUser" required></select></label><label class="field"><span>Conquista</span><select id="awardAchievement" required></select></label><div class="form-actions"><button class="button button-dark">Conceder conquista</button></div></form><div id="achievementList" class="admin-lore-grid"></div>
+    </section>
+    <section class="panel" id="senha" data-reveal>
+      <h2>Alterar senha</h2>
+      <form class="form-grid narrow" id="passForm" autocomplete="off">
+        <label class="field"><span>Senha atual</span><input type="password" id="pAtual" required autocomplete="current-password"></label>
+        <label class="field"><span>Nova senha (mín. 12 caracteres)</span><input type="password" id="pNova" required minlength="12" autocomplete="new-password"></label>
+        <label class="field"><span>Confirmar nova senha</span><input type="password" id="pConf" required minlength="12" autocomplete="new-password"></label>
+        <div class="form-actions"><button class="button button-dark" type="submit">Salvar senha <span>✓</span></button></div>
+      </form>
+    </section>
+  </main>
+
+  <dialog class="record-dialog edit-dialog" id="editDialog">
+    <button class="dialog-close" id="editClose" type="button" aria-label="Fechar">×</button>
+    <p class="eyebrow" id="editEyebrow">Registro</p>
+    <h2 id="editHeading">Novo registro</h2>
+    <div class="flash flash-err" id="editError" role="alert" hidden></div>
+    <form class="form-grid" id="editForm">
+      <label class="field span-2"><span>Título</span><input id="fTitle" maxlength="120" required></label>
+      <label class="field"><span>Categoria</span><select id="fCategory"></select></label>
+      <p class="muted field-note">O registro aparece primeiro no topo da categoria (mais recentes antes).</p>
+      <label class="field span-2"><span>Resumo (cartão)</span><textarea id="fSummary" rows="2" maxlength="240" required></textarea></label>
+      <label class="field span-2"><span>Imagem (URL opcional)</span><input id="fImage" type="url" maxlength="1000" placeholder="https://…"></label>
+      <label class="field span-2"><span>Texto completo (artigo)</span><textarea id="fBody" rows="7" maxlength="8000" required></textarea></label>
+      <label class="check span-2"><input type="checkbox" id="fPub" checked><span>Publicado no site</span></label>
+      <div class="span-2 form-actions">
+        <button class="button button-dark" type="submit">Salvar <span>✓</span></button>
+        <button class="text-link" id="editCancel" type="button">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="record-dialog edit-dialog" id="loreEditDialog">
+    <button class="dialog-close" id="loreEditClose" type="button" aria-label="Fechar">×</button>
+    <p class="eyebrow" id="loreEditEyebrow">Grimório</p>
+    <h2 id="loreEditHeading">Nova página</h2>
+    <div class="flash flash-err" id="loreEditError" role="alert" hidden></div>
+    <form class="form-grid" id="loreEditForm">
+      <label class="field span-2"><span>Título</span><input id="loreTitleField" maxlength="160" required></label>
+      <label class="field span-2"><span>Categoria</span><select id="loreCategoryField" required></select></label>
+      <label class="field span-2"><span>Resumo</span><textarea id="loreSummaryField" rows="3" maxlength="280" required></textarea></label>
+      <label class="field span-2"><span>Imagem (URL opcional)</span><input id="loreImageField" type="url" maxlength="1000"></label>
+      <label class="field span-2"><span>Data histórica confirmada (opcional, para a linha do tempo)</span><input id="loreTimelineField" type="datetime-local"></label>
+      <label class="field span-2"><span>Conteúdo</span><textarea id="loreContentField" rows="10" maxlength="30000" required></textarea></label>
+      <label class="check span-2"><input type="checkbox" id="lorePublishedField"><span>Publicado no Grimório</span></label>
+      <div class="span-2 form-actions"><button class="button button-dark" type="submit">Salvar página <span>✓</span></button><button class="text-link" id="loreEditCancel" type="button">Cancelar</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="record-dialog edit-dialog" id="monsterEditDialog">
+    <button class="dialog-close" id="monsterEditClose" type="button" aria-label="Fechar">×</button>
+    <p class="eyebrow">Bestiário</p><h2 id="monsterEditHeading">Nova criatura</h2>
+    <div class="flash flash-err" id="monsterEditError" role="alert" hidden></div>
+    <form class="form-grid" id="monsterEditForm">
+      <label class="field span-2"><span>Nome</span><input id="monsterNameField" maxlength="120" required></label>
+      <label class="field"><span>Nível ou ameaça (opcional)</span><input id="monsterThreatField" maxlength="80" placeholder="Não classificada"></label>
+      <label class="field"><span>Imagem (URL opcional)</span><input id="monsterImageField" type="url" maxlength="1000"></label>
+      <label class="field span-2"><span>Descrição</span><textarea id="monsterDescriptionField" rows="3" maxlength="4000" required></textarea></label>
+      <label class="field span-2"><span>Atributos (objeto JSON, somente valores documentados)</span><textarea id="monsterAttributesField" rows="4" maxlength="5000">{}</textarea></label>
+      <label class="field span-2"><span>Habilidades</span><textarea id="monsterSkillsField" rows="3" maxlength="5000"></textarea></label>
+      <label class="field span-2"><span>História</span><textarea id="monsterHistoryField" rows="4" maxlength="10000"></textarea></label>
+      <label class="field span-2"><span>Fraquezas</span><textarea id="monsterWeaknessesField" rows="3" maxlength="3000"></textarea></label>
+      <label class="check span-2"><input type="checkbox" id="monsterPublishedField"><span>Publicado no Bestiário</span></label>
+      <div class="span-2 form-actions"><button class="button button-dark" type="submit">Salvar criatura <span>✓</span></button><button class="text-link" id="monsterEditCancel" type="button">Cancelar</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

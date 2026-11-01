@@ -1,0 +1,146 @@
+/* Segredo Floresta Adentro — camada de movimento e melhorias visuais */
+
+/* ---------- Acessibilidade ---------- */
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--ink); color: var(--paper-light); padding: 10px 14px; font-size: 14px; transition: top .2s; }
+.skip-link:focus { top: 10px; }
+:focus-visible { outline: 2px solid var(--rust); outline-offset: 3px; }
+.inline-link { color: var(--rust); border-bottom: 1px solid currentColor; }
+.inline-link:hover { color: var(--ink); }
+
+/* ---------- Barra de progresso ---------- */
+.scroll-progress { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 40; transform-origin: 0 50%; transform: scaleX(var(--p, 0)); background: linear-gradient(90deg, var(--rust), #c2a777); pointer-events: none; }
+
+/* ---------- Cabeçalho fixo com desfoque ---------- */
+.site-header { position: sticky; top: 0; z-index: 30; background: rgba(233, 221, 189, .86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: min-height .3s, box-shadow .3s; }
+.site-header.is-scrolled { min-height: 62px; box-shadow: 0 6px 24px rgba(54, 42, 24, .14); }
+.seal-mark { transition: transform .8s cubic-bezier(.2, .8, .2, 1), background .3s, color .3s; }
+.seal:hover .seal-mark { transform: rotate(180deg); background: var(--ink); color: var(--paper-light); }
+.main-nav a:not(.nav-stamp) { position: relative; }
+.main-nav a:not(.nav-stamp)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: var(--rust); transform: scaleX(0); transform-origin: 0 50%; transition: transform .3s; }
+.main-nav a:not(.nav-stamp):hover::after, .main-nav a.active::after { transform: scaleX(1); }
+.nav-stamp { transition: transform .25s, background .25s, color .25s; }
+.nav-stamp:hover { transform: rotate(0deg) scale(1.06); background: var(--rust); color: var(--paper-light); }
+
+/* ---------- Revelar ao rolar ---------- */
+html.js [data-reveal] { opacity: 0; transform: translateY(30px); transition: opacity .9s cubic-bezier(.2, .7, .2, 1) var(--d, 0ms), transform .9s cubic-bezier(.2, .7, .2, 1) var(--d, 0ms), background .25s; will-change: opacity, transform; }
+html.js [data-reveal="left"]  { transform: translateX(-38px); }
+html.js [data-reveal="right"] { transform: translateX(38px); }
+html.js [data-reveal="zoom"]  { transform: scale(.93) translateY(18px); }
+html.js [data-reveal].is-visible { opacity: 1; transform: none; }
+
+/* ---------- Título em linhas ---------- */
+.split-title .line { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
+html.js .split-title .line > span { display: block; transform: translateY(110%); }
+html.js.is-ready .split-title .line > span { transform: none; transition: transform 1.1s cubic-bezier(.2, .8, .2, 1) calc(var(--i, 0) * 140ms + 150ms); }
+
+/* ---------- Herói ---------- */
+.fireflies { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.art-frame { transform: rotate(1deg) translate3d(var(--px, 0px), var(--py, 0px), 0); transition: transform .25s ease-out; }
+.corner-note { transform: rotate(-4deg) translate3d(var(--px2, 0px), var(--py2, 0px), 0); transition: transform .3s ease-out; }
+.moon { animation: moon-pulse 5s ease-in-out infinite; transform: translate3d(var(--mx, 0px), var(--my, 0px), 0); }
+.sigil-top { animation: float 6s ease-in-out infinite; text-shadow: 0 0 14px rgba(240, 225, 180, .55); }
+.art-stage { position: relative; overflow: hidden; }
+.forest-art > g:first-of-type { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 7s ease-in-out infinite alternate; }
+.rune-circle { transform-box: fill-box; transform-origin: 50% 50%; animation: spin 40s linear infinite; }
+.mist-layer { position: absolute; inset: 0; pointer-events: none; }
+.mist-layer span { position: absolute; left: -30%; width: 160%; height: 38%; border-radius: 50%; background: radial-gradient(ellipse, rgba(236, 228, 200, .34), transparent 70%); filter: blur(14px); animation: mist-drift 16s ease-in-out infinite alternate; }
+.mist-layer span:nth-child(1) { top: 38%; }
+.mist-layer span:nth-child(2) { top: 62%; animation-duration: 22s; animation-direction: alternate-reverse; opacity: .8; }
+.corner-note { animation: note-sway 7s ease-in-out infinite alternate; }
+
+/* ---------- Cartões ---------- */
+.record-card { position: relative; overflow: hidden; }
+.record-card::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 248, 222, .6), transparent 70%); }
+.record-card:hover::before { opacity: 1; }
+.record-card > * { position: relative; }
+.card-symbol { transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.record-card:hover .card-symbol { transform: rotate(180deg) scale(1.25); }
+.card-illustration { transition: filter .4s; }
+.card-illustration > * { transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.record-card:hover .card-illustration > *:not(.orbit):not(.branch):not(.note-lines):not(.map-line) { transform: scale(1.1); }
+.card-link span { transition: transform .3s; display: inline-block; }
+.card-link:hover span { transform: translate(4px, -4px); }
+.card-in { animation: card-in .6s cubic-bezier(.2, .8, .2, 1) both; }
+
+/* Ilustrações vivas */
+.orbit-one { animation: orbit-a 16s linear infinite; }
+.orbit-two { animation: orbit-b 22s linear infinite; }
+.orbit-core { animation: twinkle 3.5s ease-in-out infinite; }
+.eye-mark { animation: blink 6s ease-in-out infinite; }
+.map-cross { animation: pulse 2.4s ease-in-out infinite; }
+.note-seal { animation: stamp 5s ease-in-out infinite; }
+.branch-a { animation: branch-sway 5s ease-in-out infinite alternate; transform-origin: 50% 0; }
+.branch-b { animation: branch-sway-b 6s ease-in-out infinite alternate; transform-origin: 50% 0; }
+
+/* ---------- Botões e chips ---------- */
+.button { position: relative; overflow: hidden; }
+.button::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .22) 50%, transparent 70%); transform: translateX(-120%); }
+.button:hover::after { transform: translateX(120%); transition: transform .7s; }
+.button span { transition: transform .3s; }
+.button:hover span { transform: translate(3px, -3px); }
+.filter-chip { transition: background .2s, color .2s, transform .2s; }
+.filter-chip:active { transform: scale(.94); }
+
+/* ---------- Arquivo ---------- */
+.archive-note::after { transform: translateY(var(--sy, 0px)) rotate(var(--sr, 0deg)); }
+.archive-seal { transition: transform 1s cubic-bezier(.2, .8, .2, 1); }
+.archive-seal.is-visible span { animation: pulse 4s ease-in-out infinite; }
+.archive-grid:hover .archive-seal { transform: rotate(12deg); }
+
+/* ---------- Discord ---------- */
+.discord-fab { animation: fab-in .8s 1.2s cubic-bezier(.2, .8, .2, 1) both; }
+.discord-fab::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; border: 2px solid #5865f2; opacity: 0; animation: ring 3.5s 2.5s ease-out infinite; pointer-events: none; }
+
+/* ---------- Pop-up ---------- */
+.record-dialog { white-space: normal; }
+.record-dialog #dialogBody { white-space: pre-line; }
+.record-dialog[open] { animation: dialog-in .45s cubic-bezier(.2, .8, .2, 1); }
+.record-dialog[open]::backdrop { animation: fade .35s ease-out; }
+
+/* ---------- Keyframes ---------- */
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes sway { from { transform: rotate(-.5deg); } to { transform: rotate(.5deg); } }
+@keyframes note-sway { from { rotate: -1.5deg; } to { rotate: 1.2deg; } }
+@keyframes moon-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(235, 221, 181, .0), 0 0 22px rgba(235, 221, 181, .25); } 50% { box-shadow: 0 0 0 12px rgba(235, 221, 181, .05), 0 0 46px rgba(235, 221, 181, .5); } }
+@keyframes mist-drift { from { transform: translateX(-9%); } to { transform: translateX(9%); } }
+@keyframes orbit-a { from { transform: rotate(40deg) scaleX(1.55); } to { transform: rotate(400deg) scaleX(1.55); } }
+@keyframes orbit-b { from { transform: rotate(-40deg) scaleX(1.55); } to { transform: rotate(-400deg) scaleX(1.55); } }
+@keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.18) rotate(20deg); } }
+@keyframes blink { 0%, 90%, 100% { transform: rotate(-12deg) scaleY(1); } 94% { transform: rotate(-12deg) scaleY(.08); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: .75; } }
+@keyframes stamp { 0%, 100% { transform: rotate(12deg) scale(1); } 50% { transform: rotate(8deg) scale(1.07); } }
+@keyframes branch-sway { from { transform: rotate(25deg); } to { transform: rotate(31deg); } }
+@keyframes branch-sway-b { from { transform: rotate(-31deg); } to { transform: rotate(-25deg); } }
+@keyframes card-in { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes fab-in { from { opacity: 0; transform: translateY(40px) scale(.8); } to { opacity: 1; transform: none; } }
+@keyframes ring { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(22px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Movimento reduzido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+  html.js [data-reveal], html.js .split-title .line > span { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .fireflies { display: none; }
+}
+@media (max-width: 640px) {
+  .site-header.is-scrolled { min-height: 62px; }
+  .main-nav { top: 100%; }
+  .fireflies { opacity: .7; }
+}
+
+/* ---------- Blog por categorias ---------- */
+.filter-chip b { font-family: var(--typewriter); font-weight: 400; font-size: 10px; opacity: .7; margin-left: 4px; }
+.cat-section { margin-top: 54px; }
+.cat-section:first-child { margin-top: 10px; }
+.cat-head { display: flex; align-items: center; gap: 22px; padding-bottom: 18px; margin-bottom: 22px; border-bottom: 1px solid var(--ink-soft); }
+.cat-head .eyebrow { margin-bottom: 6px; }
+.cat-head h3 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 4vw, 42px); line-height: 1.02; margin: 0 0 6px; }
+.cat-blurb { margin: 0; color: var(--ink-soft); font-size: 16px; max-width: 560px; }
+.cat-rune { flex: 0 0 64px; height: 64px; display: grid; place-items: center; font-size: 30px; color: var(--rust); border: 1px solid var(--rust); border-radius: 50%; outline: 1px solid var(--line); outline-offset: 5px; animation: float 6s ease-in-out infinite; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+.cat-grid .record-card { border: 1px solid var(--line); background: rgba(255, 252, 238, .36); }
+.cat-empty { margin: 0; padding: 22px; border: 1px dashed var(--line); color: var(--ink-soft); font-style: italic; }
+.card-category { text-transform: none; letter-spacing: .04em; }
+@media (max-width: 640px) { .cat-head { gap: 14px; } .cat-rune { flex-basis: 52px; height: 52px; font-size: 24px; } }
