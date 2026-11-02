@@ -120,11 +120,11 @@ function renderPosts(records) {
     const cards = list.map((r, i) => `
       <article class="record-card" data-category="${esc(key)}" data-search="${esc(`${c.label} ${r.title} ${r.summary} ${r.author}`.toLocaleLowerCase("pt-BR"))}" data-reveal style="--d:${i * 80}ms">
         <div class="card-top"><span class="record-number">${esc(fmtDate(r.created_at))}</span><span class="card-symbol">${esc(c.symbol)}</span></div>
-        ${SFA.mediaMarkup(r.image_url, `Imagem de ${r.title}`, "record-media")}
+        ${SFA.mediaMarkup(r.image_url, `Imagem de ${r.title}`, "record-media", r)}
         <p class="card-category">${esc(c.kind)} · por ${esc(r.author)}</p>
         <h3>${esc(r.title)}</h3>
         <p>${esc(r.summary)}</p>
-        <a class="card-link" href="/registro/${encodeURIComponent(r.slug)}">Ler registro <span>↗</span></a>
+        <a class="card-link" href="/registro/${encodeURIComponent(r.slug)}" data-open-record="${esc(r.id)}" aria-haspopup="dialog" aria-controls="recordDialog">Ler registro <span>↗</span></a>
       </article>`).join("");
     return `
     <section class="cat-section" id="cat-${esc(key)}" data-category="${esc(key)}">
@@ -142,18 +142,6 @@ function renderPosts(records) {
 
   const cards = [...postsRoot.querySelectorAll(".record-card")];
   FX.observeReveal([...postsRoot.querySelectorAll("[data-reveal]")]);
-
-  postsRoot.querySelectorAll(".open-record").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const r = postById[btn.dataset.id];
-      if (!r || !dialog) return;
-      const c = CATEGORIES[r.category];
-      document.querySelector("#dialogEyebrow").textContent = `${c.kind} · ${fmtDate(r.created_at, true)} · por ${r.author}`;
-      document.querySelector("#dialogTitle").textContent = r.title;
-      document.querySelector("#dialogBody").textContent = r.body;
-      if (typeof dialog.showModal === "function") dialog.showModal();
-    });
-  });
 
   if (finePointer && !reduceMotion) {
     cards.forEach((card) => card.addEventListener("pointermove", (event) => {
@@ -211,6 +199,31 @@ searchInput?.addEventListener("input", () => applyFilters());
 
 document.querySelector("#dialogClose")?.addEventListener("click", () => dialog?.close());
 dialog?.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+postsRoot?.addEventListener("click", (event) => {
+  const link = event.target.closest("a[data-open-record]");
+  if (!link || !dialog?.showModal) return;
+  const record = postById[link.dataset.openRecord];
+  if (!record) return; // Keep the valid direct URL available if the list snapshot is stale.
+  event.preventDefault();
+  const category = SFA.CATEGORIES[record.category];
+  document.querySelector("#dialogEyebrow").textContent = `${category?.kind || "Registro"} · ${SFA.fmtDate(record.created_at, true)}${record.author ? ` · por ${record.author}` : ""}`;
+  document.querySelector("#dialogTitle").textContent = record.title || "Registro sem título";
+  document.querySelector("#dialogSummary").textContent = record.summary || "Sem resumo disponível.";
+  document.querySelector("#dialogMedia").innerHTML = SFA.mediaMarkup(record.image_url, `Imagem associada ao registro ${record.title || ""}`, "record-dialog-media", { ...record, kind: "record" });
+  document.querySelector("#dialogBody").textContent = record.body || "Descrição não disponível.";
+  const directLink = document.querySelector("#dialogDirectLink");
+  directLink.href = `/registro/${encodeURIComponent(record.slug)}`;
+  previousBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+  dialog.showModal();
+});
+let previousBodyOverflow = "";
+dialog?.addEventListener("close", () => {
+  document.body.style.overflow = previousBodyOverflow;
+});
+dialog?.addEventListener("cancel", () => {
+  document.body.style.overflow = previousBodyOverflow;
+});
 
 async function loadPosts(first = false) {
   try {

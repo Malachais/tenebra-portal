@@ -56,9 +56,29 @@ class FakePool {
     if (q.includes("from lore_entries where published=true") && q.includes("and slug=$1")) { const rows = loreRows.filter(row => row.published && row.slug === values[0]); return { rows, rowCount: rows.length }; }
     if (q.includes("from lore_entries where published=true")) return { rows: loreRows.filter(row => row.published), rowCount: loreRows.length };
     if (q.includes("select 1 from lore_entries where slug=$1")) return { rows: [], rowCount: 0 };
-    if (q.includes("insert into lore_entries")) { loreRows.push({ id: 20, slug: values[0], title: values[1], category: values[2], summary: values[3], content: values[4], image_url: values[5], author: values[6], published: values[7], created_at: new Date(), updated_at: new Date() }); return { rows: [{ id: 20, slug: values[0] }], rowCount: 1 }; }
+    if (q.includes("insert into lore_entries")) {
+      const id = 20 + loreRows.length;
+      loreRows.push({
+        id, slug: values[0], title: values[1], category: values[2], summary: values[3], content: values[4],
+        image_url: values[5], image_source: values[6], image_source_url: values[7], image_author: values[8],
+        image_author_url: values[9], image_license: values[10], image_license_url: values[11],
+        image_attribution_required: values[12], image_alt: values[13], image_description: values[14],
+        image_updated_at: values[15], author: values[16], published: values[17], timeline_at: values[18],
+        created_at: new Date(), updated_at: new Date()
+      });
+      return { rows: [{ id, slug: values[0] }], rowCount: 1 };
+    }
     if (q.includes("from lore_entries order by updated_at")) return { rows: loreRows, rowCount: loreRows.length };
-    if (q.includes("update lore_entries set")) return { rows: [{ id: values[6], slug: "os-sete-veus" }], rowCount: 1 };
+    if (q.includes("update lore_entries set")) {
+      const row = loreRows.find(item => item.id === Number(values[16]));
+      if (row) Object.assign(row, {
+        title: values[0], category: values[1], summary: values[2], content: values[3], image_url: values[4],
+        image_source: values[5], image_source_url: values[6], image_author: values[7], image_author_url: values[8],
+        image_license: values[9], image_license_url: values[10], image_attribution_required: values[11],
+        image_alt: values[12], image_description: values[13], published: values[14], timeline_at: values[15]
+      });
+      return { rows: row ? [{ id: row.id, slug: row.slug }] : [], rowCount: row ? 1 : 0 };
+    }
     if (q.includes("delete from lore_entries where id=$1")) return { rows: [], rowCount: 1 };
     if (q.includes("from monsters where published=true") && q.includes("and slug=$1")) return { rows: monsterRows.filter(row => row.slug === values[0]), rowCount: monsterRows.some(row => row.slug === values[0]) ? 1 : 0 };
     if (q.includes("from monsters where published=true")) return { rows: monsterRows.filter(row => row.published), rowCount: monsterRows.length };
@@ -118,8 +138,8 @@ class FakePool {
       savedMessages.push({ conversation_id: values[0], role: "user", author: "Visitante", content: values[1], created_at: new Date() }, { conversation_id: values[0], role: "assistant", author: "Oráculo de Tenebra", content: values[2], created_at: new Date() });
       return { rows: [], rowCount: 2 };
     }
-    if (q.includes("insert into custom_roll_history")) { customRolls.push({ user_id: Number(values[0]), expression: values[1], dice: JSON.parse(values[2]), dice_sum: values[3], modifier: values[4], result: values[5] }); return { rows: [], rowCount: 1 }; }
-    if (q.includes("from custom_roll_history h where h.user_id=$1")) { const rows = customRolls.filter(row => row.user_id === Number(values[0])).map((row, index) => ({ id: index + 1, character_id: null, event_id: null, mode: "custom", dice: row.dice, kept: row.dice, discarded: null, result: row.result, created_at: new Date(), character_name: null, event_title: null, event_slug: null, expression: row.expression })); return { rows, rowCount: rows.length }; }
+    if (q.includes("insert into custom_roll_history")) { customRolls.push({ user_id: Number(values[0]), expression: values[1], dice: JSON.parse(values[2]), dice_sum: values[3], modifier: values[4], result: values[5], groups: JSON.parse(values[6]) }); return { rows: [], rowCount: 1 }; }
+    if (q.includes("from custom_roll_history h where h.user_id=$1")) { const rows = customRolls.filter(row => row.user_id === Number(values[0])).map((row, index) => ({ id: index + 1, character_id: null, event_id: null, mode: "custom", dice: row.dice, kept: row.dice, discarded: null, result: row.result, created_at: new Date(), character_name: null, event_title: null, event_slug: null, expression: row.expression, groups: row.groups })); return { rows, rowCount: rows.length }; }
     if (q.includes("select password_hash from users limit 1")) return { rows: [{ password_hash: passwordHash }], rowCount: 1 };
     return { rows: [], rowCount: 0 };
   }
@@ -345,11 +365,38 @@ test("Rolador: empates, extremos e fonte simulada inválida são tratados de for
   assert.throws(() => roll3d8(() => NaN), { name: "RangeError" });
 });
 
-test("Rolador personalizado: expressões válidas, aleatoriedade reproduzível e entrada hostil rejeitada", async () => {
-  for (const expression of ["1d20", "2d6", "3d8", "4d10+5", "2d20-2", "1d100"]) assert.doesNotThrow(() => parseDiceExpression(expression));
+test("Rolador personalizado: grupos múltiplos, modificadores, extremos e entrada hostil", async () => {
+  for (const expression of ["1d20", "2d6", "3d8", "4d10+5", "2d20-2", "1d100", "2d10+1d8", "3d8+2d6+5", " 2 d 6 + 4 "]) assert.doesNotThrow(() => parseDiceExpression(expression));
   const values = [18, 12];
-  assert.deepEqual(rollDiceExpression("2d20 + 5", () => values.shift()), { count: 2, sides: 20, modifier: 5, expression: "2d20+5", dice: [18, 12], diceSum: 30, result: 35 });
-  for (const invalid of ["eval()", "<script>", "999999d999999", "texto", "2d6+2;process.exit()", "1d6".repeat(20)]) assert.throws(() => parseDiceExpression(invalid));
+  const single = rollDiceExpression("2d20 + 5", () => values.shift());
+  assert.equal(single.expression, "2d20+5");
+  assert.equal(single.modifier, 5);
+  assert.deepEqual(single.dice, [18, 12]);
+  assert.equal(single.diceSum, 30);
+  assert.equal(single.result, 35);
+  assert.equal(single.groups.length, 1);
+
+  const multiValues = [7, 3, 2, 5, 6];
+  const multi = rollDiceExpression("2d10+1d8+3", () => multiValues.shift());
+  assert.deepEqual(multi.groups.map(group => ({ count: group.count, sides: group.sides, dice: group.dice, subtotal: group.subtotal })), [
+    { count: 2, sides: 10, dice: [7, 3], subtotal: 10 },
+    { count: 1, sides: 8, dice: [2], subtotal: 2 }
+  ]);
+  assert.equal(multi.diceSum, 12);
+  assert.equal(multi.modifier, 3);
+  assert.equal(multi.result, 15);
+
+  const negativeValues = [8, 8, 8, 6, 6];
+  const negative = rollDiceExpression("3d8+2d6-5", () => negativeValues.shift());
+  assert.equal(negative.diceSum, 36);
+  assert.equal(negative.modifier, -5);
+  assert.equal(negative.result, 31);
+
+  for (const invalid of ["eval()", "<script>", "999999d999999", "texto", "2d6+2;process.exit()", "1d6".repeat(20), "2d6 4", "1d6++2", "0d6", "1d1", "101d6", "1d1001", "2d6*3"]) assert.throws(() => parseDiceExpression(invalid));
+  assert.throws(() => rollDiceExpression("1d6", () => 0), { name: "RangeError" });
+  assert.throws(() => rollDiceExpression("1d6", () => 7), { name: "RangeError" });
+  assert.throws(() => rollDiceExpression("1d6", () => NaN), { name: "RangeError" });
+  for (const extreme of ["100d1000", "1d2-100000", "99d2+100000"]) assert.doesNotThrow(() => parseDiceExpression(extreme));
   const response = await callApi("POST", "/api/roll/custom", { expression: "4d10 + 5" });
   assert.equal(response.status, 200);
   assert.equal(response.json.dice.length, 4);

@@ -13,7 +13,7 @@
     document.querySelector("#articleMeta").textContent = `${category?.kind || "Registro"} · ${SFA.fmtDate(record.created_at, true)}${record.author ? ` · por ${record.author}` : ""}`;
     document.querySelector("#articleSummary").textContent = record.summary;
     document.querySelector("#articleContent").textContent = record.body;
-    document.querySelector("#articleMedia").innerHTML = SFA.mediaMarkup(record.image_url, `Imagem associada ao registro ${record.title}`, "article-media");
+    document.querySelector("#articleMedia").innerHTML = SFA.mediaMarkup(record.image_url, `Imagem associada ao registro ${record.title}`, "article-media", { ...record, kind: "record" });
   } catch (err) {
     title.textContent = "Registro indisponível";
     document.querySelector("#articleContent").textContent = "";

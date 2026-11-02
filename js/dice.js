@@ -16,11 +16,20 @@
     result.replaceChildren();
     if (custom) {
       const expr = document.createElement("p"); expr.textContent = `Expressão: ${data.expression}`;
-      const values = document.createElement("p"); values.textContent = `Dados: ${data.dice.join(" | ")}`;
+      result.append(expr);
+      const groups = Array.isArray(data.groups) && data.groups.length
+        ? data.groups
+        : [{ count: data.count, sides: data.sides, dice: data.dice, subtotal: data.diceSum, sign: 1 }];
+      groups.forEach((group) => {
+        const line = document.createElement("p");
+        const sign = group.sign < 0 ? "−" : "";
+        line.textContent = `${sign}${group.count}d${group.sides}: ${(group.dice || []).join(" | ")} · soma ${group.sign < 0 ? "−" : ""}${group.subtotal ?? group.dice?.reduce((sum, value) => sum + value, 0)}`;
+        result.append(line);
+      });
       const sum = document.createElement("p"); sum.textContent = `Soma dos dados: ${data.diceSum}`;
       const modifier = document.createElement("p"); modifier.textContent = `Modificador: ${data.modifier > 0 ? "+" : ""}${data.modifier}`;
       const total = document.createElement("p"); total.className = "dice-total"; total.textContent = `Resultado final: ${data.result}`;
-      result.append(expr, values, sum, modifier, total);
+      result.append(sum, modifier, total);
       return;
     }
     data.dice.forEach((value, index) => {

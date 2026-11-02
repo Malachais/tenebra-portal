@@ -13,11 +13,49 @@ window.SFA = (() => {
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  function mediaMarkup(imageUrl, alt = "", className = "") {
+  const PLACEHOLDER_KINDS = {
+    creature: { sigil: "◉", label: "Criatura sem imagem" },
+    place: { sigil: "⌖", label: "Lugar sem imagem" },
+    artifact: { sigil: "✦", label: "Relíquia sem imagem" },
+    ritual: { sigil: "☽", label: "Ritual sem imagem" },
+    character: { sigil: "ᛟ", label: "Personagem sem imagem" },
+    event: { sigil: "✶", label: "Evento sem imagem" },
+    concept: { sigil: "ᛝ", label: "Conceito sem imagem" },
+    lore: { sigil: "ᚨ", label: "Página sem imagem" },
+    record: { sigil: "✎", label: "Registro sem imagem" }
+  };
+  function mediaKind(className, meta = {}) {
+    if (meta.kind && PLACEHOLDER_KINDS[meta.kind]) return meta.kind;
+    const category = String(meta.category || "").toLowerCase();
+    if (/monstros|bestiario|criatura/.test(category)) return "creature";
+    if (/regioes|mapa/.test(category)) return "place";
+    if (/reliquias|artefato/.test(category)) return "artifact";
+    if (/rituais|sete-veus/.test(category)) return "ritual";
+    if (/personagens/.test(category)) return "character";
+    if (/aventuras-eventos|evento/.test(category)) return "event";
+    if (/classes|habilidades|regras|faccoes|racas/.test(category)) return "concept";
+    if (meta.kind === "lore" || /grimorio|lore-media/.test(className)) return "lore";
+    return "record";
+  }
+  function creditMarkup(meta = {}) {
+    const link = (url, label, className = "") => /^(https?:\/\/|\/[^/]|mailto:)/.test(String(url || ""))
+      ? `<a class="${className}" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`
+      : esc(label);
+    const parts = [];
+    if (meta.image_author) parts.push(link(meta.image_author_url, meta.image_author));
+    if (meta.image_license) parts.push(link(meta.image_license_url, meta.image_license));
+    if (meta.image_source) parts.push(link(meta.image_source_url, meta.image_source));
+    if (!parts.length) return "";
+    return `<span class="tenebra-media-credit">Imagem: ${parts.join(" · ")}</span>`;
+  }
+  function mediaMarkup(imageUrl, alt = "", className = "", meta = {}) {
     const url = String(imageUrl ?? "").trim();
     const valid = /^(https?:\/\/|\/[^/])/.test(url);
+    const kind = mediaKind(className, meta), placeholder = PLACEHOLDER_KINDS[kind] || PLACEHOLDER_KINDS.record;
     const tree = `<svg class="tenebra-placeholder-tree" viewBox="0 0 160 120" aria-hidden="true"><path d="M80 112V44M80 69 48 50M80 78l34-25M80 92 54 77M80 87l27-16"/><path d="m80 8-27 34h16L43 61h24L50 78h60L93 61h24L91 42h16z"/><path d="M20 112h120"/></svg>`;
-    return `<span class="tenebra-media ${esc(className)}${valid ? "" : " is-missing"}"><span class="tenebra-placeholder" role="img" aria-label="Publicação sem imagem"><span class="tenebra-placeholder-sigil" aria-hidden="true">ᛟ</span>${tree}<strong aria-hidden="true">?</strong><small>Registro sem imagem</small></span>${valid ? `<img class="tenebra-media-image" data-tenebra-image src="${esc(url)}" alt="${esc(alt)}" loading="lazy">` : ""}</span>`;
+    const safeAlt = meta.image_alt || alt || "";
+    const credit = valid ? creditMarkup(meta) : "";
+    return `<span class="tenebra-media ${esc(className)}${valid ? "" : " is-missing"}" data-media-kind="${esc(kind)}"><span class="tenebra-placeholder" role="img" aria-label="${esc(placeholder.label)}"><span class="tenebra-placeholder-sigil" aria-hidden="true">${placeholder.sigil}</span>${tree}<strong aria-hidden="true">?</strong><small>${esc(placeholder.label)}</small></span>${valid ? `<img class="tenebra-media-image" data-tenebra-image src="${esc(url)}" alt="${esc(safeAlt)}" loading="lazy" decoding="async"${meta.image_description ? ` title="${esc(meta.image_description)}"` : ""}>` : ""}${credit}</span>`;
   }
 
   function parseDate(s) { const value = String(s); return new Date(/[zZ]|[+-]\d\d:\d\d$/.test(value) ? value : value.replace(" ", "T") + "Z"); }

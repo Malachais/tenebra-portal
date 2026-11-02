@@ -12,7 +12,7 @@
     document.querySelector("#loreMeta").textContent = `${entry.category.replaceAll("-", " ")} · ${SFA.fmtDate(entry.created_at, true)} · por ${entry.author}`;
     document.querySelector("#loreSummary").textContent = entry.summary;
     document.querySelector("#loreContent").textContent = entry.content;
-    document.querySelector("#loreMedia").innerHTML = SFA.mediaMarkup(entry.image_url, `Imagem associada a ${entry.title}`, "article-media");
+    document.querySelector("#loreMedia").innerHTML = SFA.mediaMarkup(entry.image_url, `Imagem associada a ${entry.title}`, "article-media", { ...entry, kind: "lore" });
   } catch (err) {
     title.textContent = "Página indisponível";
     document.querySelector("#loreContent").textContent = "";

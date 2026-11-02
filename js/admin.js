@@ -40,6 +40,143 @@ async function guarded(fn) {
   }
 }
 
+/* ---------- Imagens editoriais ---------- */
+const IMAGE_PANEL_FIELDS = {
+  record: {
+    url: "#fImage", query: "#recordImageQuery", search: "#recordImageSearch", status: "#recordImageStatus",
+    results: "#recordImageResults", preview: "#recordImagePreview", alt: "#fImageAlt", description: "#fImageDescription",
+    source: "#fImageSource", sourceUrl: "#fImageSourceUrl", author: "#fImageAuthor", authorUrl: "#fImageAuthorUrl",
+    license: "#fImageLicense", licenseUrl: "#fImageLicenseUrl", attribution: "#fImageAttribution", mediaClass: "record-media"
+  },
+  lore: {
+    url: "#loreImageField", query: "#loreImageQuery", search: "#loreImageSearch", status: "#loreImageStatus",
+    results: "#loreImageResults", preview: "#loreImagePreview", alt: "#loreImageAlt", description: "#loreImageDescription",
+    source: "#loreImageSource", sourceUrl: "#loreImageSourceUrl", author: "#loreImageAuthor", authorUrl: "#loreImageAuthorUrl",
+    license: "#loreImageLicense", licenseUrl: "#loreImageLicenseUrl", attribution: "#loreImageAttribution", mediaClass: "article-media"
+  }
+};
+
+function imagePanelMeta(panel) {
+  const fields = IMAGE_PANEL_FIELDS[panel];
+  const value = (selector) => $(selector).value.trim();
+  return {
+    image_url: value(fields.url),
+    image_alt: value(fields.alt),
+    image_description: value(fields.description),
+    image_source: value(fields.source),
+    image_source_url: value(fields.sourceUrl),
+    image_author: value(fields.author),
+    image_author_url: value(fields.authorUrl),
+    image_license: value(fields.license),
+    image_license_url: value(fields.licenseUrl),
+    image_attribution_required: $(fields.attribution).checked
+  };
+}
+
+function fillImagePanel(panel, data = {}) {
+  const fields = IMAGE_PANEL_FIELDS[panel];
+  const set = (selector, value) => { $(selector).value = value ?? ""; };
+  set(fields.url, data.image_url ?? data.url);
+  set(fields.alt, data.image_alt);
+  set(fields.description, data.image_description);
+  set(fields.source, data.image_source);
+  set(fields.sourceUrl, data.image_source_url);
+  set(fields.author, data.image_author);
+  set(fields.authorUrl, data.image_author_url);
+  set(fields.license, data.image_license);
+  set(fields.licenseUrl, data.image_license_url);
+  $(fields.attribution).checked = !!data.image_attribution_required;
+}
+
+function renderImagePreview(panel) {
+  const fields = IMAGE_PANEL_FIELDS[panel];
+  const meta = imagePanelMeta(panel);
+  $(fields.preview).innerHTML = SFA.mediaMarkup(meta.image_url, meta.image_alt || "Prévia da imagem", fields.mediaClass, meta);
+}
+
+function setImageStatus(panel, message, type = "") {
+  const status = $(IMAGE_PANEL_FIELDS[panel].status);
+  status.textContent = message;
+  status.className = `image-panel-status${type ? ` is-${type}` : ""}`;
+  status.hidden = !message;
+}
+
+function initImagePanel(panel) {
+  const fields = IMAGE_PANEL_FIELDS[panel];
+  let results = [];
+  const preview = () => renderImagePreview(panel);
+
+  [fields.url, fields.alt, fields.description, fields.author, fields.license, fields.source].forEach((selector) => {
+    $(selector).addEventListener("input", preview);
+  });
+  preview();
+
+  async function importImage(item, button) {
+    button.disabled = true;
+    setImageStatus(panel, "Importando a imagem selecionada…");
+    try {
+      const imported = await SFA.post("/api/admin/images/import", {
+        thumbUrl: item.thumbUrl,
+        image_url: item.thumbUrl,
+        image_alt: item.title,
+        image_description: item.description,
+        image_source: item.sourceName || "Wikimedia Commons",
+        image_source_url: item.pageUrl,
+        image_author: item.author,
+        image_license: item.license,
+        image_license_url: item.licenseUrl,
+        image_attribution_required: item.attributionRequired
+      });
+      fillImagePanel(panel, imported);
+      preview();
+      setImageStatus(panel, "Imagem importada para o acervo local. Confira os créditos antes de publicar.", "ok");
+    } catch (error) {
+      button.disabled = false;
+      setImageStatus(panel, error.message || "Não foi possível importar a imagem.", "err");
+    }
+  }
+
+  async function runSearch() {
+    const query = $(fields.query).value.trim();
+    if (query.length < 2) return setImageStatus(panel, "Digite pelo menos dois caracteres para buscar imagens.", "err");
+    setImageStatus(panel, "Consultando o Wikimedia Commons…");
+    $(fields.results).innerHTML = "";
+    try {
+      const data = await SFA.get(`/api/admin/images/search?q=${encodeURIComponent(query)}`);
+      results = Array.isArray(data.results) ? data.results : [];
+      if (!results.length) return setImageStatus(panel, "Nenhuma imagem livre encontrada. Tente outros termos ou informe uma URL manual.");
+      setImageStatus(panel, `${results.length} imagem(ns) encontrada(s). Selecione uma para importar.`);
+      $(fields.results).innerHTML = results.map((item, index) => `
+        <article class="image-result">
+          <img src="${esc(item.thumbUrl)}" alt="" loading="lazy" decoding="async">
+          <div class="image-result-copy">
+            <strong>${esc(item.title)}</strong>
+            <span>${esc(item.license || "Licença não informada")}${item.author ? ` · ${esc(item.author)}` : ""}</span>
+            ${item.pageUrl ? `<a href="${esc(item.pageUrl)}" target="_blank" rel="noopener noreferrer">Ver original ↗</a>` : ""}
+          </div>
+          <button class="btn" type="button" data-use-image="${index}">Usar imagem</button>
+        </article>`).join("");
+    } catch (error) {
+      results = [];
+      setImageStatus(panel, error.message || "Não foi possível buscar imagens.", "err");
+    }
+  }
+
+  $(fields.search).addEventListener("click", () => guarded(runSearch));
+  $(fields.query).addEventListener("keydown", (event) => {
+    if (event.key === "Enter") { event.preventDefault(); guarded(runSearch); }
+  });
+  $(fields.results).addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-use-image]");
+    if (!button) return;
+    const item = results[Number(button.dataset.useImage)];
+    if (item) guarded(() => importImage(item, button));
+  });
+  $(fields.url).addEventListener("change", () => setImageStatus(panel, ""));
+}
+initImagePanel("record");
+initImagePanel("lore");
+
 /* ---------- Dados ---------- */
 async function reload() {
   const data = await SFA.get("/api/admin/records");
@@ -217,7 +354,9 @@ function openLoreEditor(entry = null) {
   $("#loreTitleField").value = entry?.title ?? "";
   $("#loreCategoryField").value = entry?.category ?? "historia-tenebra";
   $("#loreSummaryField").value = entry?.summary ?? "";
-  $("#loreImageField").value = entry?.image_url ?? "";
+  fillImagePanel("lore", entry || {});
+  renderImagePreview("lore");
+  setImageStatus("lore", "");
   $("#loreTimelineField").value = toLocalDateTime(entry?.timeline_at);
   $("#loreContentField").value = entry?.content ?? "";
   $("#lorePublishedField").checked = !!entry?.published;
@@ -246,8 +385,9 @@ $("#loreEditForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   const payload = {
     title: $("#loreTitleField").value, category: $("#loreCategoryField").value,
-    summary: $("#loreSummaryField").value, image_url: $("#loreImageField").value, timeline_at: $("#loreTimelineField").value || null,
-    content: $("#loreContentField").value, published: $("#lorePublishedField").checked
+    summary: $("#loreSummaryField").value, timeline_at: $("#loreTimelineField").value || null,
+    content: $("#loreContentField").value, published: $("#lorePublishedField").checked,
+    ...imagePanelMeta("lore")
   };
   try {
     if (editingLoreId) await SFA.put(`/api/admin/lore/${editingLoreId}`, payload);
@@ -452,7 +592,10 @@ function openEditor(rec) {
   $("#fTitle").value = rec?.title ?? "";
   $("#fCategory").value = rec?.category ?? (tab !== "todos" ? tab : "registros");
   $("#fSummary").value = rec?.summary ?? "";
-  $("#fImage").value = rec?.image_url ?? "";
+  fillImagePanel("record", rec || {});
+  renderImagePreview("record");
+  setImageStatus("record", "");
+  $("#recordImageResults").innerHTML = "";
   $("#fBody").value = rec?.body ?? "";
   $("#fPub").checked = rec ? !!rec.published : true;
   $("#editError").hidden = true;
@@ -467,7 +610,7 @@ $("#editForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const payload = {
     title: $("#fTitle").value, category: $("#fCategory").value, summary: $("#fSummary").value,
-    body: $("#fBody").value, image_url: $("#fImage").value, published: $("#fPub").checked
+    body: $("#fBody").value, published: $("#fPub").checked, ...imagePanelMeta("record")
   };
   try {
     if (editingId) await SFA.put(`/api/admin/records/${editingId}`, payload);

@@ -13,22 +13,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/motion.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/motion.css">
   <script>document.documentElement.classList.add('js');</script>
-  <script src="js/config.js" defer></script>
-  <script src="js/api.js" defer></script>
-  <script src="js/search.js" defer></script>
-  <script src="js/fx.js" defer></script>
-  <script src="js/script.js" defer></script>
-  <script src="js/portal.js" defer></script>
-  <script src="js/bestiary.js" defer></script>
-  <script src="js/characters.js" defer></script>
-  <script src="js/public-characters.js" defer></script>
-  <script src="js/dice.js" defer></script>
-  <script src="js/community.js" defer></script>
-  <script src="js/events.js" defer></script>
-  <script src="js/campaigns.js" defer></script>
+  <script src="/js/config.js" defer></script>
+  <script src="/js/api.js" defer></script>
+  <script src="/js/record-modal.js" defer></script>
+  <script src="/js/global-search.js" defer></script>
+  <script src="/js/search.js" defer></script>
+  <script src="/js/fx.js" defer></script>
+  <script src="/js/script.js" defer></script>
+  <script src="/js/portal.js" defer></script>
+  <script src="/js/bestiary.js" defer></script>
+  <script src="/js/characters.js" defer></script>
+  <script src="/js/public-characters.js" defer></script>
+  <script src="/js/dice.js" defer></script>
+  <script src="/js/community.js" defer></script>
+  <script src="/js/events.js" defer></script>
+  <script src="/js/campaigns.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#registros">Pular para os registros</a>
@@ -116,7 +118,7 @@
       </div>
     </section>
 
-    <section class="global-search page-shell" aria-labelledby="globalSearchTitle">
+    <section class="global-search page-shell" id="busca" aria-labelledby="globalSearchTitle">
       <div class="section-heading"><div><p class="eyebrow">Índice transversal · ᛟ</p><h2 id="globalSearchTitle">Buscar no <em>arquivo</em></h2></div><label class="search-box"><span aria-hidden="true">⌕</span><input id="globalSearch" type="search" maxlength="100" autocomplete="off" placeholder="Personagem, criatura, região, evento…" aria-label="Buscar em todo o portal"></label></div>
       <div id="globalSearchResults" class="global-search-results" aria-live="polite"><p class="muted">Pesquise no Grimório, Bestiário, Atlas, eventos e registros.</p></div>
     </section>
@@ -324,12 +326,17 @@
     </form>
   </dialog>
 
-  <dialog class="record-dialog" id="recordDialog">
-    <button class="dialog-close" id="dialogClose" aria-label="Fechar">×</button>
-    <p class="eyebrow" id="dialogEyebrow">Registro de campo</p>
-    <h2 id="dialogTitle">Título do registro</h2>
-    <p id="dialogBody">Conteúdo do registro.</p>
-    <p class="dialog-foot">SFA · ARQUIVO DE TENEBRA</p>
+  <dialog class="record-dialog" id="recordDialog" aria-labelledby="dialogTitle" aria-describedby="dialogSummary">
+    <div class="record-dialog-head">
+      <div><p class="eyebrow" id="dialogEyebrow">Registro de campo</p><h2 id="dialogTitle">Título do registro</h2></div>
+      <button class="dialog-close" id="dialogClose" type="button" aria-label="Fechar registro">×</button>
+    </div>
+    <div class="record-dialog-content">
+      <p id="dialogSummary" class="article-summary"></p>
+      <div id="dialogMedia"></div>
+      <div id="dialogBody" class="article-content"></div>
+      <p class="dialog-foot"><a id="dialogDirectLink" href="/registro/">Abrir página do registro ↗</a> · SFA · ARQUIVO DE TENEBRA</p>
+    </div>
   </dialog>
   <dialog class="record-dialog edit-dialog" id="characterDialog">
     <button class="dialog-close" id="characterClose" type="button" aria-label="Fechar">×</button>
@@ -359,6 +366,6 @@
       <div class="span-2 form-actions"><button class="button button-dark" type="submit">Salvar ficha <span>✓</span></button><button class="text-link" id="characterCancel" type="button">Cancelar</button></div>
     </form>
   </dialog>
-  <script src="js/chat.js" defer></script>
+  <script src="/js/chat.js" defer></script>
 </body>
 </html>

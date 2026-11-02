@@ -53,7 +53,7 @@
       }
       list.innerHTML = entries.map((entry) => `<article class="portal-entry-card">
         <a class="portal-entry-link" href="/grimorio/${encodeURIComponent(entry.slug)}" aria-label="Ler ${SFA.esc(entry.title)}">
-          ${SFA.mediaMarkup(entry.image_url, `Imagem de ${entry.title}`, "portal-entry-media")}
+          ${SFA.mediaMarkup(entry.image_url, `Imagem de ${entry.title}`, "portal-entry-media", { ...entry, kind: "lore" })}
           <span class="card-category">${SFA.esc(categoryNames[entry.category] || "Página do Grimório")}</span>
           <strong>${SFA.esc(entry.title)}</strong>
           <span class="portal-entry-summary">${SFA.esc(entry.summary)}</span>

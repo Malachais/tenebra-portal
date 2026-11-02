@@ -8,14 +8,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/motion.css">
-  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/motion.css">
+  <link rel="stylesheet" href="/css/admin.css">
   <script>document.documentElement.classList.add("js");</script>
-  <script src="js/api.js" defer></script>
-  <script src="js/fx.js" defer></script>
+  <script src="/js/api.js" defer></script>
+  <script src="/js/record-modal.js" defer></script>
+  <script src="/js/global-search.js" defer></script>
+  <script src="/js/fx.js" defer></script>
   <title>Painel — Arquivo de Tenebra</title>
-  <script src="js/admin.js" defer></script>
+  <script src="/js/admin.js" defer></script>
 </head>
 <body class="admin-body" hidden>
   <div class="paper-grain" aria-hidden="true"></div>
@@ -138,7 +140,29 @@
       <label class="field"><span>Categoria</span><select id="fCategory"></select></label>
       <p class="muted field-note">O registro aparece primeiro no topo da categoria (mais recentes antes).</p>
       <label class="field span-2"><span>Resumo (cartão)</span><textarea id="fSummary" rows="2" maxlength="240" required></textarea></label>
-      <label class="field span-2"><span>Imagem (URL opcional)</span><input id="fImage" type="url" maxlength="1000" placeholder="https://…"></label>
+      <fieldset class="image-panel span-2" data-image-panel="record">
+        <legend>Imagem contextual <span class="muted">opcional</span></legend>
+        <p class="field-note">A imagem aparece no cartão e no artigo. Busque no Wikimedia Commons para importar uma cópia local com licença e créditos; você também pode informar uma URL ou caminho manual.</p>
+        <label class="field"><span>URL ou caminho da imagem</span><input id="fImage" type="text" maxlength="1000" placeholder="https://… ou /img/library/…"></label>
+        <div class="image-panel-search">
+          <label class="field"><span>Buscar imagens no Wikimedia Commons</span><input id="recordImageQuery" type="search" maxlength="80" placeholder="floresta nebulosa, ruínas, manuscrito…"></label>
+          <button class="btn" type="button" id="recordImageSearch">Buscar imagens</button>
+        </div>
+        <div class="image-panel-status" id="recordImageStatus" role="status" hidden></div>
+        <div class="image-panel-results" id="recordImageResults"></div>
+        <div class="image-preview" id="recordImagePreview" aria-live="polite"></div>
+        <div class="image-meta-grid">
+          <label class="field"><span>Texto alternativo</span><input id="fImageAlt" maxlength="240" placeholder="Descreva a imagem para leitores de tela"></label>
+          <label class="field"><span>Descrição / legenda</span><input id="fImageDescription" maxlength="500"></label>
+          <label class="field"><span>Fonte</span><input id="fImageSource" maxlength="120" placeholder="Wikimedia Commons"></label>
+          <label class="field"><span>URL da fonte</span><input id="fImageSourceUrl" type="url" maxlength="1000"></label>
+          <label class="field"><span>Autor / crédito</span><input id="fImageAuthor" maxlength="160"></label>
+          <label class="field"><span>URL do autor</span><input id="fImageAuthorUrl" type="url" maxlength="1000"></label>
+          <label class="field"><span>Licença</span><input id="fImageLicense" maxlength="120" placeholder="CC BY-SA 4.0"></label>
+          <label class="field"><span>URL da licença</span><input id="fImageLicenseUrl" type="url" maxlength="1000"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="fImageAttribution"><span>A licença exige atribuição visível</span></label>
+      </fieldset>
       <label class="field span-2"><span>Texto completo (artigo)</span><textarea id="fBody" rows="7" maxlength="8000" required></textarea></label>
       <label class="check span-2"><input type="checkbox" id="fPub" checked><span>Publicado no site</span></label>
       <div class="span-2 form-actions">
@@ -157,7 +181,29 @@
       <label class="field span-2"><span>Título</span><input id="loreTitleField" maxlength="160" required></label>
       <label class="field span-2"><span>Categoria</span><select id="loreCategoryField" required></select></label>
       <label class="field span-2"><span>Resumo</span><textarea id="loreSummaryField" rows="3" maxlength="280" required></textarea></label>
-      <label class="field span-2"><span>Imagem (URL opcional)</span><input id="loreImageField" type="url" maxlength="1000"></label>
+      <fieldset class="image-panel span-2" data-image-panel="lore">
+        <legend>Imagem contextual <span class="muted">opcional</span></legend>
+        <p class="field-note">A imagem ilustra a página do Grimório. Busque no Wikimedia Commons para importar uma cópia local com licença e créditos; você também pode informar uma URL ou caminho manual.</p>
+        <label class="field"><span>URL ou caminho da imagem</span><input id="loreImageField" type="text" maxlength="1000" placeholder="https://… ou /img/library/…"></label>
+        <div class="image-panel-search">
+          <label class="field"><span>Buscar imagens no Wikimedia Commons</span><input id="loreImageQuery" type="search" maxlength="80" placeholder="floresta, lua, ruína, criatura…"></label>
+          <button class="btn" type="button" id="loreImageSearch">Buscar imagens</button>
+        </div>
+        <div class="image-panel-status" id="loreImageStatus" role="status" hidden></div>
+        <div class="image-panel-results" id="loreImageResults"></div>
+        <div class="image-preview" id="loreImagePreview" aria-live="polite"></div>
+        <div class="image-meta-grid">
+          <label class="field"><span>Texto alternativo</span><input id="loreImageAlt" maxlength="240"></label>
+          <label class="field"><span>Descrição / legenda</span><input id="loreImageDescription" maxlength="500"></label>
+          <label class="field"><span>Fonte</span><input id="loreImageSource" maxlength="120" placeholder="Wikimedia Commons"></label>
+          <label class="field"><span>URL da fonte</span><input id="loreImageSourceUrl" type="url" maxlength="1000"></label>
+          <label class="field"><span>Autor / crédito</span><input id="loreImageAuthor" maxlength="160"></label>
+          <label class="field"><span>URL do autor</span><input id="loreImageAuthorUrl" type="url" maxlength="1000"></label>
+          <label class="field"><span>Licença</span><input id="loreImageLicense" maxlength="120" placeholder="CC BY-SA 4.0"></label>
+          <label class="field"><span>URL da licença</span><input id="loreImageLicenseUrl" type="url" maxlength="1000"></label>
+        </div>
+        <label class="check"><input type="checkbox" id="loreImageAttribution"><span>A licença exige atribuição visível</span></label>
+      </fieldset>
       <label class="field span-2"><span>Data histórica confirmada (opcional, para a linha do tempo)</span><input id="loreTimelineField" type="datetime-local"></label>
       <label class="field span-2"><span>Conteúdo</span><textarea id="loreContentField" rows="10" maxlength="30000" required></textarea></label>
       <label class="check span-2"><input type="checkbox" id="lorePublishedField"><span>Publicado no Grimório</span></label>
