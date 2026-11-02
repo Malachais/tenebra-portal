@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#21190f">
+  <meta name="description" content="Atlas de Segredo Floresta Adentro: raças, economia, organizações, vilões e comandos GPT.">
+  <title>Atlas de Da'kor — Tenebra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Special+Elite&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/motion.css"><link rel="stylesheet" href="/css/atlas.css">
+  <script src="/js/atlas.js" defer></script>
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="seal" href="/"><span class="seal-mark">✶</span><span class="seal-name">TENEBRA</span></a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      <a href="#povos">Raças</a><a href="#economia">Economia</a><a href="#organizacoes">Organizações</a><a href="#viloes">Vilões</a><a href="#gpt-cmd">GPT CMD</a>
+      <a class="nav-stamp" href="/">Voltar ao portal</a>
+    </nav>
+  </header>
+  <main class="page-shell atlas-page">
+    <a class="text-link" href="/">← Voltar ao arquivo principal</a>
+    <header class="atlas-hero">
+      <p class="eyebrow">Arquivo complementar · Da'kor</p>
+      <h1>Atlas de <em>Da’kor</em></h1>
+      <p class="article-summary">Raças, variantes, economia, organizações, ameaças e ferramentas de narração reunidas a partir dos registros do projeto.</p>
+      <div class="atlas-index"><a href="#povos">I · Povos</a><a href="#economia">II · Economia</a><a href="#organizacoes">III · Organizações</a><a href="#viloes">IV · Vilões</a><a href="#gpt-cmd">V · GPT CMD</a></div>
+    </header>
+
+    <section class="atlas-section" id="povos">
+      <p class="eyebrow">I · Sistema de povos</p><h2>Raças e <em>variantes</em></h2>
+      <p class="atlas-intro">Artes originais exportadas do grimório. Abra cada registro para consultar a imagem e a identificação do povo.</p>
+      <h3 class="atlas-subtitle">Raças</h3><div class="atlas-race-grid" id="baseRaces"></div>
+      <h3 class="atlas-subtitle">Sub-raças e variantes</h3><div class="atlas-race-grid" id="variantRaces"></div>
+      <p class="atlas-note">A exportação recebida não continha uma arte separada para Fey das Trevas. O registro textual foi preservado sem substituir a imagem por uma ilustração genérica.</p>
+    </section>
+
+    <section class="atlas-section" id="economia">
+      <p class="eyebrow">II · Comércio e circulação</p><h2>Economia de <em>Da’kor</em></h2>
+      <p class="atlas-intro">O sistema monetário utiliza três gemas como moedas. O guia do Notion registra a relação de conversão 1:4:8 (Abysmus → Dríadinita → Radiantina).</p>
+      <div class="atlas-coin-grid">
+        <article class="atlas-coin"><span class="coin-symbol coin-radiant">✧</span><h3>Radiantina</h3><p>Gema de tonalidade branca e brilho suave, associada à luminosidade.</p><small>Moeda luminosa</small></article>
+        <article class="atlas-coin"><span class="coin-symbol coin-driad">❧</span><h3>Dríadinita</h3><p>Gema verde esculpida como uma folha, ligada às florestas e à vida selvagem.</p><small>Moeda natural</small></article>
+        <article class="atlas-coin"><span class="coin-symbol coin-abyss">◈</span><h3>Abysmus</h3><p>Gema negra que absorve a luz e carrega uma sensação de frio e vazio.</p><small>Moeda abissal</small></article>
+      </div>
+      <h3 class="atlas-subtitle">Conversão e serviços</h3>
+      <div class="atlas-rule-grid">
+        <article><h3>Cofre Encantado</h3><p>Armazena até 100 moedas de cada tipo e permite três conversões globais sem taxa. Depois disso, aplicam-se as taxas do banco.</p></article>
+        <article><h3>Gema Íris</h3><p>Consumível de conversão com taxa de 5%. O exemplo do documento: 100 unidades convertidas resultam em 95 após a taxa.</p></article>
+        <article><h3>Convergência Natural</h3><p>Amuleto raro que converte Dríadinitas em outras moedas sem taxa, limitado a três conversões por dia.</p></article>
+        <article><h3>Bancos de conversão</h3><p>Presentes em cada cidade. Cobram 3% por conversão e 2% ao mês para armazenamento seguro.</p></article>
+      </div>
+      <h3 class="atlas-subtitle">Armazenamento de moedas</h3>
+      <div class="atlas-table-wrap"><table class="atlas-table"><thead><tr><th>Item</th><th>Capacidade</th><th>Preço</th></tr></thead><tbody>
+        <tr><td>Carteira Luminosa</td><td>40 Radiantinas</td><td>8 Radiantinas</td></tr>
+        <tr><td>Saco Abissal</td><td>10 Abysmus</td><td>10 Radiantinas</td></tr>
+        <tr><td>Pouch da Floresta</td><td>25 Dríadinitas</td><td>12 Radiantinas</td></tr>
+        <tr><td>Amuleto do Tesouro</td><td>30 de cada moeda</td><td>15 Radiantinas</td></tr>
+        <tr><td>Cofre da Prosperidade</td><td>80 de cada moeda</td><td>80 Radiantinas</td></tr>
+        <tr><td>Bolsa Etérea</td><td>120 de cada moeda</td><td>200 Radiantinas</td></tr>
+        <tr><td>Saco Infinito das Riquezas</td><td>Ilimitado</td><td>800 Radiantinas</td></tr>
+        <tr><td>Estojo Mágico dos Tesouros</td><td>100 (o texto não especifica por moeda)</td><td>150 Radiantinas</td></tr>
+        <tr><td>Polchete dos Três Reinos</td><td>300 de cada moeda</td><td>400 Radiantinas</td></tr>
+      </tbody></table></div>
+      <h3 class="atlas-subtitle">Eventos econômicos e instabilidade</h3>
+      <ul class="atlas-list"><li><strong>Abundância Sazonal:</strong> NPCs especiais oferecem itens raros por moedas específicas, sem conversão.</li><li><strong>Nômades Comerciantes:</strong> caravanas oferecem itens e serviços únicos em troca de moedas específicas.</li><li><strong>Quadros de Missões:</strong> tarefas podem conceder recompensas, conversões sem taxa ou itens mágicos.</li><li><strong>Inflação:</strong> a maldição do culto pode valorizar o Abysmus e alterar a relação de conversão. O documento cita cenários possíveis, não uma taxa fixa vigente.</li></ul>
+      <p class="atlas-note">Nota editorial: o Notion registra “Radianita” em um trecho e “Radiantina” nos registros de moeda. A página padroniza como Radiantina, preservando a divergência aqui para revisão do cânone.</p>
+    </section>
+
+    <section class="atlas-section" id="organizacoes">
+      <p class="eyebrow">III · Poder e influência</p><h2>Organizações de <em>Da’kor</em></h2>
+      <div class="atlas-org-grid" id="organizationEntries"></div>
+    </section>
+
+    <section class="atlas-section" id="viloes">
+      <p class="eyebrow">IV · Ameaças maiores</p><h2>Vilões e <em>entidades</em></h2>
+      <div class="atlas-villain-grid">
+        <article class="atlas-villain"><span class="atlas-threat">AMEAÇA · DIVINO</span><h3>Nieblatotep</h3><p>Entidade cósmica de caos e sombra, de forma mutável, capaz de distorcer a realidade, abrir portais dimensionais e provocar insanidade por sua presença.</p><p>Seus seguidores, os <strong>Filhos do Caos</strong>, acreditam que seu despertar mergulhará Da’kor em escuridão. Sua limitação registrada é o confinamento em outras dimensões: a invocação exige rituais complexos.</p><p class="atlas-quote">Poderes registrados: Magia do Caos, Manipulação das Sombras, Corrupção de Mentes e Manifestação Cósmica.</p></article>
+        <article class="atlas-villain"><span class="atlas-threat">AMEAÇA · DIVINO</span><h3>Cthulhu</h3><p>Entidade cósmica adormecida nas profundezas do oceano. Sua forma é descrita com tentáculos serpentinos, asas membranosas e olhos insondáveis.</p><p>Seu retorno traria caos e loucura sobre Da’kor. A fraqueza documentada é o sono profundo nas profundezas, aguardando o momento de despertar.</p><p class="atlas-quote">Poderes registrados: Magia do Abismo, Controle Mental, Manifestação Cósmica e Comunicação Psíquica.</p></article>
+      </div>
+      <h3 class="atlas-subtitle">Lugares associados</h3>
+      <div class="atlas-place-grid"><article><h3>Sylvanterra</h3><p>Região de florestas densas onde a natureza é venerada e protegida.</p></article><article><h3>Equilibria</h3><p>Nação que busca mediar conflitos entre forças opostas e conter a expansão do caos.</p></article><article><h3>Verdant Shade</h3><p>Terra de contrastes, onde vegetação abundante convive com sombras profundas.</p></article><article><h3>Silvestreon</h3><p>Região de magia natural, habitada por druidas e seres místicos que protegem a harmonia da floresta.</p></article></div>
+    </section>
+
+    <section class="atlas-section" id="gpt-cmd">
+      <p class="eyebrow">V · Ferramentas de narração</p><h2>GPT <em>CMD</em></h2>
+      <p class="atlas-intro">Biblioteca de comandos e prompts exportados do Notion. Use “Copiar comando” para enviar o texto a um assistente de IA. Estes botões copiam os prompts; não executam chamadas a uma API nem consomem créditos automaticamente.</p>
+      <div class="atlas-command-grid" id="gptCommands"></div>
+    </section>
+    <section class="atlas-map-section"><div><p class="eyebrow">Cartografia · Da’kor</p><h2>Mapa cultural</h2><p>Mapa original incluído na exportação do grimório.</p></div><img src="/img/Dakor_Mapa_Cultural.jpeg" alt="Mapa cultural do arquipélago de Da’kor" loading="lazy"></section>
+    <p class="atlas-source-note">Fonte de conteúdo: exportação fornecida de “O segredo floresta Adentro”, do Notion. Informações não presentes nos documentos não foram inventadas.</p>
+  </main>
+  <footer class="site-footer"><div class="page-shell footer-inner"><a class="footer-brand" href="/">TENEBRA <span>✶</span></a><p>Segredo Floresta Adentro · Atlas de Da’kor</p><a href="#inicio">Voltar ao topo ↑</a></div></footer>
+</body></html>
