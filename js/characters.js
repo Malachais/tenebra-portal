@@ -7,9 +7,11 @@
   const form = document.querySelector("#characterForm");
   let characters = [];
   let editingId = null;
+  const statusLabels = { draft: "Rascunho", private: "Privada", restricted: "Restrita", public: "Pública" };
 
   const fields = {
     name: "#characterName", title: "#characterTitle", race: "#characterRace", class_name: "#characterClass", origin: "#characterOrigin", veil: "#characterVeil",
+    summary: "#characterSummary", image_url: "#characterImage",
     st: "#characterST", dx: "#characterDX", iq: "#characterIQ", ht: "#characterHT",
     san: "#characterSAN", life: "#characterLife", inventory: "#characterInventory",
     skills: "#characterSkills", backstory: "#characterBackstory"
@@ -23,14 +25,15 @@
     if (!characters.length) { message.textContent = "Você ainda não criou uma ficha."; return; }
     const statLabels = [["ST", "st"], ["DX", "dx"], ["IQ", "iq"], ["HT", "ht"], ["SAN", "san"], ["Vida", "life"]];
     list.innerHTML = characters.map((character) => `<article class="character-card">
-      <p class="card-category">${SFA.esc(character.race)} · ${SFA.esc(character.class_name)}${character.veil ? ` · ${SFA.esc(character.veil)}` : ""}</p>
+      <div class="character-card-head"><p class="card-category">${SFA.esc(character.race)} · ${SFA.esc(character.class_name)}${character.veil ? ` · ${SFA.esc(character.veil)}` : ""}</p><span class="character-status character-status-${SFA.esc(character.status || "private")}">${SFA.esc(statusLabels[character.status] || "Privada")}</span></div>
       <h3>${SFA.esc(character.name)}</h3>
       ${character.title ? `<p class="muted">${SFA.esc(character.title)}</p>` : ""}${character.origin ? `<p><strong>Origem:</strong> ${SFA.esc(character.origin)}</p>` : ""}
-      ${SFA.mediaMarkup(null, `Imagem de ${character.name}`, "character-media")}
+      ${character.summary ? `<p class="character-summary">${SFA.esc(character.summary)}</p>` : ""}
+      ${SFA.mediaMarkup(character.image_url, `Imagem de ${character.name}`, "character-media")}
       <dl class="character-stats">${statLabels.map(([label, key]) => `<div><dt>${label}</dt><dd>${SFA.esc(displayNumber(character[key]))}</dd></div>`).join("")}</dl>
       <p class="character-history-preview">${SFA.esc(character.backstory || "História ainda não registrada.")}</p>
       <details><summary>Inventário e habilidades</summary><h4>Inventário</h4><p>${SFA.esc(character.inventory || "Sem itens registrados.").replaceAll("\n", "<br>")}</p><h4>Habilidades</h4><p>${SFA.esc(character.skills || "Sem habilidades registradas.").replaceAll("\n", "<br>")}</p></details>
-      <div class="character-related" id="characterRelated${character.id}"></div><div class="character-actions"><button class="btn" type="button" data-character-act="edit" data-id="${character.id}">Editar ficha</button><button class="btn btn-danger" type="button" data-character-act="delete" data-id="${character.id}">Excluir</button></div>
+      <div class="character-related" id="characterRelated${character.id}"></div><div class="character-actions">${character.status === "public" && character.slug ? `<a class="btn" href="/personagens/${encodeURIComponent(character.slug)}">Ver página pública ↗</a>` : ""}<button class="btn" type="button" data-character-act="edit" data-id="${character.id}">Editar ficha</button>${["public", "restricted"].includes(character.status) ? "" : `<button class="btn btn-danger" type="button" data-character-act="delete" data-id="${character.id}">Excluir</button>`}</div>
     </article>`).join("");
     characters.forEach(async character => {
       const target = document.querySelector(`#characterRelated${character.id}`);
@@ -62,6 +65,11 @@
     document.querySelector("#characterDialogTitle").textContent = character ? "Editar ficha" : "Nova personagem";
     for (const [key, selector] of Object.entries(fields)) document.querySelector(selector).value = character ? value(character, key) : "";
     for (const key of numericKeys) { const input = document.querySelector(fields[key]); input.value = character ? value(character, key) : ""; const error = document.querySelector(`#${input.id}Error`); error.textContent = ""; error.hidden = true; }
+    const statusSelect = document.querySelector("#characterStatus");
+    const statuses = ["draft", "private"];
+    if (character && ["public", "restricted"].includes(character.status) && !statuses.includes(character.status)) statuses.push(character.status);
+    statusSelect.innerHTML = statuses.map(status => `<option value="${status}">${statusLabels[status]}</option>`).join("");
+    statusSelect.value = character?.status && statuses.includes(character.status) ? character.status : "private";
     document.querySelector("#characterVisibleProfile").checked = character?.visible_on_profile === true;
     document.querySelector("#characterError").hidden = true;
     dialog.showModal();
@@ -117,6 +125,7 @@
     }
     const payload = Object.fromEntries(Object.entries(fields).map(([key, selector]) => [key, document.querySelector(selector).value]));
     payload.visible_on_profile = document.querySelector("#characterVisibleProfile").checked;
+    payload.status = document.querySelector("#characterStatus").value;
     for (const key of ["st", "dx", "iq", "ht", "san", "life"]) payload[key] = payload[key] === "" ? null : Number(payload[key]);
     try {
       if (editingId) await SFA.put(`/api/me/characters/${editingId}`, payload);

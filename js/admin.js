@@ -9,6 +9,8 @@ let loreEntries = [];
 let editingLoreId = null;
 let monsters = [];
 let editingMonsterId = null;
+let characters = [];
+let editingCharacterId = null;
 let currentAdminId = null;
 let users = [];
 const LORE_CATEGORIES = {
@@ -75,6 +77,25 @@ async function reloadMonsters() {
         <button class="btn btn-danger" type="button" data-monster-act="delete" data-id="${monster.id}">Remover</button>
       </div>
     </article>`).join("") : '<p class="muted">Ainda não há criaturas catalogadas.</p>';
+}
+
+async function reloadCharacters() {
+  const { characters: rows } = await SFA.get("/api/admin/characters");
+  characters = rows;
+  const labels = { draft: "Rascunho", private: "Privada", restricted: "Restrita", public: "Publicada" };
+  $("#characterAdminList").innerHTML = characters.length ? characters.map((character) => `
+    <article class="admin-lore-card" data-character-id="${character.id}">
+      <p class="card-category">${esc(labels[character.status] || character.status)} · ${esc(character.owner)} · ${character.access_count || 0} acesso(s)</p>
+      <h3>${esc(character.name)}</h3>
+      <p>${esc(character.summary || character.title || `${character.race} · ${character.class_name}`)}</p>
+      <div class="admin-lore-actions">
+        ${character.status === "public" ? `<a class="btn" href="/personagens/${encodeURIComponent(character.slug)}" target="_blank" rel="noopener">Ver página ↗</a>` : ""}
+        <button class="btn" type="button" data-character-act="edit" data-id="${character.id}">Editar</button>
+        <button class="btn" type="button" data-character-act="publish" data-id="${character.id}">${character.status === "public" ? "Despublicar" : "Publicar"}</button>
+        ${character.status === "restricted" ? `<select data-character-access-user="${character.id}" aria-label="Usuário com acesso">${users.map(user => `<option value="${user.id}">${esc(user.username)}</option>`).join("")}</select><button class="btn" type="button" data-character-act="grant" data-id="${character.id}">Liberar acesso</button>` : ""}
+        <button class="btn btn-danger" type="button" data-character-act="delete" data-id="${character.id}">Remover</button>
+      </div>
+    </article>`).join("") : '<p class="muted">Ainda não há personagens cadastrados.</p>';
 }
 
 async function reloadDashboard() {
@@ -298,6 +319,98 @@ $("#monsterEditForm").addEventListener("submit", async (event) => {
   }
 });
 
+/* ---------- Personagens do universo ---------- */
+const characterAdminDialog = $("#characterAdminDialog");
+function openCharacterAdminEditor(character = null, relations = {}) {
+  editingCharacterId = character?.id ?? null;
+  $("#characterAdminEyebrow").textContent = character ? "Elenco do universo" : "Novo personagem";
+  $("#characterAdminHeading").textContent = character ? "Editar personagem do universo" : "Novo personagem do universo";
+  const values = {
+    name: character?.name ?? "", title: character?.title ?? "", race: character?.race ?? "", class_name: character?.class_name ?? "",
+    origin: character?.origin ?? "", veil: character?.veil ?? "", summary: character?.summary ?? "", image_url: character?.image_url ?? "",
+    st: character?.st ?? "", dx: character?.dx ?? "", iq: character?.iq ?? "", ht: character?.ht ?? "", san: character?.san ?? "", life: character?.life ?? "",
+    inventory: character?.inventory ?? "", skills: character?.skills ?? "", backstory: character?.backstory ?? ""
+  };
+  const fieldIds = {
+    name: "#characterAdminName", title: "#characterAdminTitle", race: "#characterAdminRace", class_name: "#characterAdminClass",
+    origin: "#characterAdminOrigin", veil: "#characterAdminVeil", summary: "#characterAdminSummary", image_url: "#characterAdminImage",
+    st: "#characterAdminST", dx: "#characterAdminDX", iq: "#characterAdminIQ", ht: "#characterAdminHT", san: "#characterAdminSAN", life: "#characterAdminLife",
+    inventory: "#characterAdminInventory", skills: "#characterAdminSkills", backstory: "#characterAdminBackstory"
+  };
+  for (const [key, selector] of Object.entries(fieldIds)) {
+    const value = values[key];
+    $(selector).value = value === null || value === undefined ? "" : String(value);
+  }
+  $("#characterAdminStatus").value = character?.status ?? "private";
+  $("#characterAdminVisible").checked = character?.visible_on_profile === true;
+  $("#characterAdminRegions").value = (relations.related_regions || []).join(", ");
+  $("#characterAdminEvents").value = (relations.related_events || []).join(", ");
+  $("#characterAdminLore").value = (relations.related_lore || []).join(", ");
+  $("#characterAdminError").hidden = true;
+  characterAdminDialog.showModal();
+  $("#characterAdminName").focus();
+}
+
+$("#newCharacterAdminBtn").addEventListener("click", () => guarded(() => openCharacterAdminEditor()));
+$("#characterAdminClose").addEventListener("click", () => characterAdminDialog.close());
+$("#characterAdminCancel").addEventListener("click", () => characterAdminDialog.close());
+$("#characterAdminList").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-character-act]");
+  if (!button) return;
+  const id = Number(button.dataset.id);
+  if (button.dataset.characterAct === "edit") guarded(async () => {
+    const { character, relations } = await SFA.get(`/api/admin/characters/${id}`);
+    openCharacterAdminEditor(character, relations);
+  });
+  if (button.dataset.characterAct === "publish") guarded(async () => {
+    const { character } = await SFA.get(`/api/admin/characters/${id}`);
+    const status = character.status === "public" ? "private" : "public";
+    await SFA.put(`/api/admin/characters/${id}`, { ...character, status });
+    await reloadCharacters();
+    await reloadDashboard();
+    flash(status === "public" ? "Personagem publicado no elenco do universo." : "Personagem removido da listagem pública.");
+  });
+  if (button.dataset.characterAct === "grant") guarded(async () => {
+    const select = document.querySelector(`[data-character-access-user="${id}"]`);
+    await SFA.post(`/api/admin/characters/${id}/access`, { user_id: Number(select?.value) });
+    await reloadCharacters();
+    flash("Acesso liberado para o usuário selecionado.");
+  });
+  if (button.dataset.characterAct === "delete" && confirm("Remover este personagem definitivamente? A ficha e suas relações serão apagadas.")) guarded(async () => {
+    await SFA.del(`/api/admin/characters/${id}`);
+    await reloadCharacters();
+    await reloadDashboard();
+    flash("Personagem removido.");
+  });
+});
+
+$("#characterAdminForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const numeric = (id) => { const raw = $(id).value.trim(); return raw === "" ? null : Number(raw); };
+  const payload = {
+    name: $("#characterAdminName").value, title: $("#characterAdminTitle").value, race: $("#characterAdminRace").value,
+    class_name: $("#characterAdminClass").value, origin: $("#characterAdminOrigin").value, veil: $("#characterAdminVeil").value,
+    summary: $("#characterAdminSummary").value, image_url: $("#characterAdminImage").value, status: $("#characterAdminStatus").value,
+    st: numeric("#characterAdminST"), dx: numeric("#characterAdminDX"), iq: numeric("#characterAdminIQ"),
+    ht: numeric("#characterAdminHT"), san: numeric("#characterAdminSAN"), life: numeric("#characterAdminLife"),
+    inventory: $("#characterAdminInventory").value, skills: $("#characterAdminSkills").value,
+    backstory: $("#characterAdminBackstory").value, visible_on_profile: $("#characterAdminVisible").checked,
+    related_regions: $("#characterAdminRegions").value, related_events: $("#characterAdminEvents").value, related_lore: $("#characterAdminLore").value
+  };
+  try {
+    if (editingCharacterId) await SFA.put(`/api/admin/characters/${editingCharacterId}`, payload);
+    else await SFA.post("/api/admin/characters", payload);
+    characterAdminDialog.close();
+    await reloadCharacters();
+    await reloadDashboard();
+    flash(editingCharacterId ? "Personagem atualizado." : "Personagem criado e salvo no arquivo.");
+  } catch (error) {
+    if (error.status === 401) return toLogin();
+    $("#characterAdminError").textContent = error.message;
+    $("#characterAdminError").hidden = false;
+  }
+});
+
 /* ---------- Usuários e moderação ---------- */
 $("#usersBody").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-save-role]");
@@ -402,6 +515,7 @@ $("#logoutBtn").addEventListener("click", async () => {
     await reloadMonsters();
     await reloadDashboard();
     await reloadUsers();
+    await reloadCharacters();
     await reloadEvents();
     await reloadCampaigns();
     await reloadRegions();

@@ -3,7 +3,7 @@
   const title = document.querySelector("#loreTitle");
   const error = document.querySelector("#loreError");
   try {
-    const slug = new URLSearchParams(location.search).get("slug");
+    const slug = new URLSearchParams(location.search).get("slug") || location.pathname.split("/").filter(Boolean).at(-1);
     if (!slug) throw new Error("Este endereço não identifica uma página do Grimório.");
     const { entry } = await SFA.get(`/api/lore/${encodeURIComponent(slug)}`);
     title.textContent = entry.title;

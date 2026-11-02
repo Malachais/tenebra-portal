@@ -3,7 +3,7 @@
   const title = document.querySelector("#articleTitle");
   const error = document.querySelector("#articleError");
   try {
-    const slug = new URLSearchParams(location.search).get("slug");
+    const slug = new URLSearchParams(location.search).get("slug") || location.pathname.split("/").filter(Boolean).at(-1);
     if (!slug) throw new Error("Este endereço não identifica um registro.");
     const { record } = await SFA.get(`/api/records/${encodeURIComponent(slug)}`);
     const category = SFA.CATEGORIES[record.category];

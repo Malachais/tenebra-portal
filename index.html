@@ -24,6 +24,7 @@
   <script src="js/portal.js" defer></script>
   <script src="js/bestiary.js" defer></script>
   <script src="js/characters.js" defer></script>
+  <script src="js/public-characters.js" defer></script>
   <script src="js/dice.js" defer></script>
   <script src="js/community.js" defer></script>
   <script src="js/events.js" defer></script>
@@ -43,7 +44,7 @@
       <a href="#universo">O universo</a>
       <a href="#grimorio">Grimório</a>
       <a href="#bestiario">Bestiário</a>
-      <a href="#personagens">Personagens</a>
+      <a href="/personagens">Personagens</a>
       <a href="#rolador">Rolador</a>
       <a href="#chat-comunidade">Chat</a>
       <a href="#eventos">Eventos</a>
@@ -137,9 +138,9 @@
           <span class="portal-door-mark" aria-hidden="true">◉</span><span class="portal-door-index">II · CRIATURAS</span>
           <strong>Bestiário</strong><span>Conheça as presenças que habitam a mata.</span><span class="portal-door-arrow" aria-hidden="true">↗</span>
         </a>
-        <a class="portal-door" href="#personagens" data-reveal style="--d:160ms">
+        <a class="portal-door" href="/personagens" data-reveal style="--d:160ms">
           <span class="portal-door-mark" aria-hidden="true">✶</span><span class="portal-door-index">III · JORNADA</span>
-          <strong>Personagens</strong><span>Prepare sua ficha e acompanhe sua história.</span><span class="portal-door-arrow" aria-hidden="true">↗</span>
+          <strong>Personagens</strong><span>Conheça o elenco do universo e prepare sua ficha.</span><span class="portal-door-arrow" aria-hidden="true">↗</span>
         </a>
         <a class="portal-door" href="#eventos" data-reveal style="--d:240ms">
           <span class="portal-door-mark" aria-hidden="true">⌖</span><span class="portal-door-index">IV · ENCONTROS</span>
@@ -167,12 +168,22 @@
       <div class="bestiary-grid" id="monsterEntries" aria-live="polite"><p class="empty-state">Consultando o Bestiário…</p></div>
     </section>
 
+    <section class="characters-section page-shell" id="personagens-publicos" aria-labelledby="publicCharactersTitle">
+      <div class="section-heading" data-reveal>
+        <div><p class="eyebrow">Elenco do universo · ᛟ</p><h2 id="publicCharactersTitle">Personagens do <em>universo</em></h2></div>
+        <a class="text-link" href="/personagens">Ver todos os personagens ↗</a>
+      </div>
+      <p class="grimoire-intro">Fichas publicadas pelos arquivistas para conhecer quem atravessa Tenebra. As fichas privadas de jogadores continuam visíveis apenas para suas contas.</p>
+      <div class="character-grid" id="publicCharacterEntries" data-limit="4" aria-live="polite"><p class="empty-state">Consultando o elenco…</p></div>
+      <p class="character-section-foot"><a class="text-link" href="#personagens">Acessar minhas fichas ↓</a></p>
+    </section>
+
     <section class="characters-section page-shell" id="personagens" aria-labelledby="charactersTitle">
       <div class="section-heading" data-reveal>
         <div><p class="eyebrow">Caderno de jornada · ✶</p><h2 id="charactersTitle">Suas <em>personagens</em></h2></div>
         <button class="button button-dark" id="newCharacterBtn" type="button" hidden>Criar ficha <span>+</span></button>
       </div>
-      <p class="grimoire-intro">Fichas privadas vinculadas à sua conta. Os valores são preenchidos por você; o portal não presume fórmulas de vida ou regras que ainda não estejam documentadas.</p>
+      <p class="grimoire-intro">Fichas privadas vinculadas à sua conta. Você controla a visibilidade; somente administradores podem publicar um personagem no universo. Os valores são preenchidos por você; o portal não presume fórmulas de vida ou regras que ainda não estejam documentadas.</p>
       <p class="empty-state" id="charactersMessage" aria-live="polite">Verificando sua sessão…</p>
       <div class="character-grid" id="characterEntries" aria-live="polite"></div>
     </section>
@@ -328,6 +339,9 @@
     <form class="form-grid" id="characterForm">
       <label class="field span-2"><span>Nome</span><input id="characterName" maxlength="120" required></label>
       <label class="field span-2"><span>Título (opcional)</span><input id="characterTitle" maxlength="120"></label>
+      <label class="field span-2"><span>Resumo público (até 280 caracteres)</span><textarea id="characterSummary" rows="2" maxlength="280" placeholder="Uma frase que apresente o personagem sem revelar segredos da ficha."></textarea></label>
+      <label class="field span-2"><span>Imagem (URL ou caminho opcional)</span><input id="characterImage" maxlength="1000" placeholder="https://… ou /img/…"></label>
+      <label class="field"><span>Visibilidade</span><select id="characterStatus"><option value="private">Privada — só você</option><option value="draft">Rascunho</option></select></label>
       <label class="field"><span>Raça</span><input id="characterRace" maxlength="80" required></label>
       <label class="field"><span>Classe</span><input id="characterClass" maxlength="80" required></label>
       <label class="field"><span>Origem (opcional)</span><input id="characterOrigin" maxlength="120"></label>

@@ -52,3 +52,88 @@ O teste com banco real permanece pendente porque o cluster está parado e não p
 - Adicionado `npm run admin:malachais` com prompt oculto; cria ou atualiza somente `malachais`, usando o hash scrypt existente e preservando `merjin`.
 - Teste unitário cobre criação e redefinição via `ensureAdmin`, incluindo armazenamento de hash e preservação da outra conta.
 - A tentativa real não foi concluída porque o PostgreSQL recusou conexão com `EPERM` antes do prompt e antes de qualquer escrita. Após iniciar o PostgreSQL, execute o comando e informe a senha no prompt protegido.
+
+
+## Fase 13 — personagens públicos, visibilidade e estabilização (02/11/2026)
+
+### Diagnóstico
+
+- O portal não tinha rota pública de personagens, nem rota individual, nem API pública. As únicas fichas eram as privadas de jogadores, listadas apenas para o dono.
+- O modelo `characters` não possuía `slug`, status editorial, resumo público, imagem ou data de publicação. O campo existente `visible_on_profile` apenas exibia nome/raça/classe no perfil e não tornava a ficha pública.
+- Regiões e eventos já eram renderizados pelo frontend com imagem, mas as consultas públicas e administrativas não selecionavam `image_url`.
+- `/api/profiles` referenciava `event_count` sem selecioná-lo; a consulta foi corrigida.
+- Páginas de detalhe liam o slug apenas da query string `?slug=`, embora os links e rotas limpas usem `/secao/:slug`. O navegador mantém o caminho, então as páginas de artigo, Grimório, Bestiário e personagem não encontravam o registro. Foi adicionado fallback pelo último segmento de `location.pathname`, no mesmo padrão já usado por eventos, regiões, campanhas e perfis.
+- Erros internos não expunham um código estável para o cliente, dificultando distinguir validação, permissão e falha de servidor.
+
+### Modelo e regras
+
+- Migration incremental `014_public_characters.sql`: `slug`, `status`, `summary`, `image_url`, `published_at`, índice único de slug, índice parcial do elenco público, tabela `character_access` e colunas opcionais `regions.image_url` e `events.image_url`.
+- Fichas existentes receberam slug estável com sufixo de ID e permaneceram `private`; nenhuma ficha de jogador foi publicada automaticamente.
+- Status permitidos: `draft`, `private`, `restricted`, `public`.
+  - `public`: visitante anônimo, dono, usuários autorizados e administradores.
+  - `private`: dono e administradores.
+  - `restricted`: dono, administradores e usuários com linha explícita em `character_access`.
+  - `draft`: dono e administradores; não aparece em listagens públicas.
+- Apenas administradores definem `public` ou `restricted`. Donos podem usar `draft`/`private` e preservar um status já publicado ao editar.
+- Donos não excluem fichas `public`/`restricted` diretamente; a API responde `CHARACTER_PUBLISHED_LOCKED` e orienta a despublicar primeiro.
+- Acesso anônimo ou não autorizado a ficha privada/rascunho/restrita responde 404, sem revelar a existência do registro.
+- A API pública não devolve `user_id` nem a função interna do dono.
+- Relações usam `universe_links` com `source_type = 'character-sheet'` e só são gravadas para slugs existentes e publicados/visíveis.
+
+### Rotas e interface
+
+- `GET /api/characters` — elenco público com busca por nome, título, raça, classe, origem, véu e resumo.
+- `GET /api/characters/:slug` — ficha pública conforme permissão, com `can_edit` para dono/admin.
+- `GET /api/links?type=character-sheet&id=...` — relações públicas ou autorizadas.
+- `/personagens` e `/personagens/:slug` — páginas HTML servidas sem sessão.
+- Painel administrativo: seção “Personagens do universo” com criar, editar, publicar/despublicar, excluir, relações e liberação de acesso restrito.
+- Formulário do jogador: resumo, imagem e visibilidade `draft`/`private`; link “Ver página pública” quando aplicável; exclusão bloqueada para fichas publicadas.
+- Busca global inclui personagens públicos com destino `/personagens/:slug`.
+- Placeholder existente de árvore SVG com `?` é reutilizado quando não há imagem.
+
+### Automação de publicação pelo administrador
+
+Ao criar ou editar um personagem no painel, a API valida os campos, gera slug único quando necessário, grava o status, define `published_at` ao publicar, sincroniza somente as relações selecionadas que existem, e passa a incluir o registro na listagem e na página individual. O fluxo foi validado com dados reais e sem intervenção manual no banco.
+
+### Testes automatizados
+
+- `npm test`: **24 testes de API + 6 testes de seeds/UI aprovados, 0 falhas**.
+- Novos testes cobrem: criação pública pelo admin, slug, listagem anônima, busca, detalhe sem `user_id`, relações, ficha privada oculta, ficha restrita oculta, concessão/revogação de acesso, despublicação/republicação e limpeza. O teste de UI confirma as páginas e scripts do elenco e o fallback de slug por rota limpa.
+- `node --check` aprovado em `server.js`, `test/api.test.js`, `test/ui.test.js`, `js/characters.js`, `js/public-characters.js`, `js/character-page.js`, `js/article.js`, `js/lore.js`, `js/monster-page.js` e `js/admin.js`.
+
+### Validação ponta a ponta com PostgreSQL real
+
+Servidor iniciado em porta de teste, migration `014_public_characters` aplicada. Fluxo executado contra o banco real:
+
+1. Administrador autenticado por login real.
+2. Personagem público criado pelo painel/API com região e Grimório relacionados.
+3. Registro confirmado no PostgreSQL com `status = public` e `published_at` preenchido.
+4. Visitante anônimo encontrou o personagem em `/api/characters`, na busca global e em `/api/characters/:slug`.
+5. `/personagens` e `/personagens/:slug` responderam HTML 200 sem sessão.
+6. As relações apareceram em `/api/links`.
+7. As fichas privadas existentes (`noctharis-1`, `mensageiro-2`) continuaram retornando 404 para visitantes.
+8. Usuário comum de teste foi criado; não acessou o painel nem conseguiu publicar diretamente.
+9. Personagem restrito ficou oculto para visitante e para o usuário comum antes da concessão; após liberação pelo admin, o usuário autorizado recebeu 200; após revogação, voltou a 404.
+10. Personagem foi despublicado para `draft` (sumiu da listagem e da página) e republicado (voltou a 200).
+11. Todos os personagens, vínculos, acessos e o usuário de teste foram removidos; o banco terminou com os 2 personagens privados e 2 usuários originais.
+
+### Checklist do personagem público
+
+- [x] Criado pelo administrador.
+- [x] Salvo no PostgreSQL.
+- [x] Status `public` com `published_at`.
+- [x] Slug único gerado automaticamente.
+- [x] Aparece na listagem pública.
+- [x] Página individual acessível.
+- [x] Funciona sem login.
+- [x] Não expõe `user_id` ou dados internos do dono.
+- [x] Relações selecionadas conectadas e visíveis.
+- [x] Fichas privadas existentes continuam privadas.
+- [x] Acesso restrito exige autorização explícita.
+- [x] Despublicar remove da área pública; republicar restaura.
+
+### Git
+
+- Alterações funcionais em `server.js`, `migrations/014_public_characters.sql`, `test/api.test.js`, `index.html`, `characters.html`, `character.html`, `admin.html`, `css/style.css`, `js/characters.js`, `js/admin.js`, `js/public-characters.js`, `js/character-page.js`, `js/article.js`, `js/lore.js` e `js/monster-page.js`.
+- Documentação em `README.md` e `TEST_REPORT.md`.
+- Nenhum `.env`, senha, token ou credencial foi incluído. Nenhum `git push` foi executado.

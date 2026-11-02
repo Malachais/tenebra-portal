@@ -3,7 +3,7 @@
   const title = document.querySelector("#monsterTitle");
   const error = document.querySelector("#monsterError");
   try {
-    const slug = new URLSearchParams(location.search).get("slug");
+    const slug = new URLSearchParams(location.search).get("slug") || location.pathname.split("/").filter(Boolean).at(-1);
     if (!slug) throw new Error("Este endereço não identifica uma criatura.");
     const { monster } = await SFA.get(`/api/monsters/${encodeURIComponent(slug)}`);
     title.textContent = monster.name;

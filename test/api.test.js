@@ -12,16 +12,22 @@ const communityMessages = [];
 let merjinRole = "editor";
 const loreRows = [{ id: 19, slug: "os-sete-veus", title: "Os Sete Véus", category: "sete-veus", summary: "Camadas ainda não cartografadas.", content: "Cada véu guarda perguntas em aberto.", image_url: null, author: "merjin", published: true, created_at: new Date(), updated_at: new Date() }];
 const monsterRows = [{ id: 21, slug: "cervo-de-vidro", name: "Cervo de Vidro", image_url: null, description: "Uma criatura cristalina.", threat_level: null, attributes: {}, skills: "", history: "Imita gestos.", weaknesses: "", author: "Arquivo", published: true, created_at: new Date(), updated_at: new Date() }];
+const regionRows = [{ id: 41, slug: "dakor", name: "Da'kor", description: "Terras de vidro.", history: "", factions: "", creatures: "", related_events: [], image_url: null, published: true }];
+const eventRows = [{ id: 51, slug: "retorno", title: "Retorno", description: "Sessão de retorno.", event_date: new Date(), image_url: null, status: "planned" }];
+const universeLinks = [];
 const characterRows = [];
+const characterAccess = [];
 class FakePool {
   async query(sql, values = []) {
     const q = String(sql).toLowerCase();
     if (q.includes("select case category when 'personagens'") && q.includes("from events where status")) return { rows: [{ kind: "Personagem", title: "Malachais", summary: "Registro de lore", href: "/grimorio/malachais" }, { kind: "Evento", title: "Retorno", summary: "Sessão", href: "/eventos/retorno" }], rowCount: 2 };
+    if (q.includes("with public_entities as") && q.includes("where l.source_type='character-sheet'") && q.includes("l.source_id=$1")) { const targets = { lore: [loreRows, row => row.published, row => ({ kind: "lore", title: row.title, summary: row.summary, href: `/grimorio/${row.slug}` })], region: [regionRows, row => row.published, row => ({ kind: "region", title: row.name, summary: row.description, href: `/mapa/${row.slug}` })], event: [eventRows, row => row.status !== "archived", row => ({ kind: "event", title: row.title, summary: row.description, href: `/eventos/${row.slug}` })] }; const rows = universeLinks.filter(link => link.source_type === "character-sheet" && link.source_id === String(values[0])).map(link => { const [source, visible, shape] = targets[link.target_type] || []; const target = source?.find(row => row.slug === link.target_id && visible(row)); return target ? { relation: link.relation, ...shape(target) } : null; }).filter(Boolean); return { rows, rowCount: rows.length }; }
     if (q.includes("select username,role from users where id=$1")) { const user = [...registeredUsers.values()].find(item => item.id === Number(values[0])); const row = user || (Number(values[0]) === 7 ? { username: "arquivista-teste", role: "admin" } : null); return { rows: row ? [row] : [], rowCount: row ? 1 : 0 }; }
     if (q.includes("select role from users where id=$1")) { const user = [...registeredUsers.values()].find(item => item.id === Number(values[0])); const role = user?.role || (Number(values[0]) === 7 ? "admin" : Number(values[0]) === 8 ? merjinRole : null); return { rows: role ? [{ role }] : [], rowCount: role ? 1 : 0 }; }
     if (q.includes("select id,username,role from users where id=$1")) { const user = [...registeredUsers.values()].find(item => item.id === Number(values[0])); return { rows: user ? [user] : [], rowCount: user ? 1 : 0 }; }
     if (q.includes("select id,role from users where id=$1")) { const user = [...registeredUsers.values()].find(item => item.id === Number(values[0])); const row = user ? { id: user.id, role: user.role } : Number(values[0]) === 7 ? { id: 7, role: "admin" } : null; return { rows: row ? [row] : [], rowCount: row ? 1 : 0 }; }
     if (q.includes("select count(*) as total from users where role='admin'")) return { rows: [{ total: 3 }], rowCount: 1 };
+    if (q.includes("select 1 from users where id=$1")) { const found = Number(values[0]) === 7 || Number(values[0]) === 8 || Number(values[0]) === 9 || [...registeredUsers.values()].some(user => user.id === Number(values[0])); return { rows: found ? [{ one: 1 }] : [], rowCount: found ? 1 : 0 }; }
     if (q.includes("update users set role=$1 where id=$2")) { const user = [...registeredUsers.values()].find(item => item.id === Number(values[1])); if (user) user.role = values[0]; return { rows: user ? [{ id: user.id, username: user.username, role: user.role }] : [], rowCount: user ? 1 : 0 }; }
     if (q.includes("where lower(username)")) {
       const registered = registeredUsers.get(String(values[0]||"").toLowerCase());
@@ -44,6 +50,9 @@ class FakePool {
       return { rows: rows.map(({ role, content, author, created_at }) => ({ role, content, author, created_at })), rowCount: rows.length };
     }
     if (q.startsWith("select title,category,summary,content from records where published=true")) return { rows: [{ title: "O Cervo de Vidro", category: "monstros", summary: "Uma criatura cristalina", content: "Imita o último gesto de quem o encara." }], rowCount: 1 };
+    if (q.includes("select slug from lore_entries where slug=$1 and published=true")) { const rows = loreRows.filter(row => row.published && row.slug === values[0]).map(row => ({ slug: row.slug })); return { rows, rowCount: rows.length }; }
+    if (q.includes("select slug from regions where slug=$1 and published=true")) { const rows = regionRows.filter(row => row.published && row.slug === values[0]).map(row => ({ slug: row.slug })); return { rows, rowCount: rows.length }; }
+    if (q.includes("select slug from events where slug=$1 and status<>'archived'")) { const rows = eventRows.filter(row => row.status !== "archived" && row.slug === values[0]).map(row => ({ slug: row.slug })); return { rows, rowCount: rows.length }; }
     if (q.includes("from lore_entries where published=true") && q.includes("and slug=$1")) { const rows = loreRows.filter(row => row.published && row.slug === values[0]); return { rows, rowCount: rows.length }; }
     if (q.includes("from lore_entries where published=true")) return { rows: loreRows.filter(row => row.published), rowCount: loreRows.length };
     if (q.includes("select 1 from lore_entries where slug=$1")) return { rows: [], rowCount: 0 };
@@ -59,10 +68,45 @@ class FakePool {
     if (q.includes("update monsters set")) return { rows: [{ id: values[9], slug: "cervo-de-vidro" }], rowCount: 1 };
     if (q.includes("delete from monsters where id=$1")) return { rows: [], rowCount: 1 };
     if (q.includes("from characters where id=$1 and user_id=$2")) { const rows = characterRows.filter(row => row.id === Number(values[0]) && row.user_id === Number(values[1])); return { rows, rowCount: rows.length }; }
+    if (q.includes("select id,user_id,status from characters where id=$1")) { const rows = characterRows.filter(row => row.id === Number(values[0])); return { rows, rowCount: rows.length }; }
+    if (q.includes("select id,status from characters where id=$1")) { const rows = characterRows.filter(row => row.id === Number(values[0])).map(row => ({ id: row.id, status: row.status })); return { rows, rowCount: rows.length }; }
+    if (q.includes("select id,slug from characters where id=$1")) { const rows = characterRows.filter(row => row.id === Number(values[0])).map(row => ({ id: row.id, slug: row.slug })); return { rows, rowCount: rows.length }; }
+    if (q.includes("select id from characters where id=$1")) { const rows = characterRows.filter(row => row.id === Number(values[0])).map(row => ({ id: row.id })); return { rows, rowCount: rows.length }; }
+    if (q.includes("select 1 from characters where id=$1")) { const rows = characterRows.filter(row => row.id === Number(values[0])); return { rows: rows.map(() => ({ one: 1 })), rowCount: rows.length }; }
+    if (q.includes("select 1 from characters where slug=$1")) { const rows = characterRows.filter(row => row.slug === values[0]); return { rows: rows.map(() => ({ one: 1 })), rowCount: rows.length }; }
+    if (q.includes("from characters c where") && q.includes("order by coalesce")) { const search = q.includes("c.name ilike $1") ? String(values[0] || "").replaceAll("%", "").toLowerCase() : ""; const fields = ["id", "slug", "name", "title", "race", "class_name", "origin", "veil", "summary", "image_url", "status", "published_at", "updated_at"]; const rows = characterRows.filter(row => row.status === "public" && (!search || [row.name, row.title, row.race, row.class_name, row.origin, row.veil, row.summary].some(value => String(value || "").toLowerCase().includes(search)))).map(row => Object.fromEntries(fields.map(key => [key, row[key]]))); return { rows, rowCount: rows.length }; }
+    if (q.includes("from characters c join users u") && q.includes("where c.slug=$1")) { const row = characterRows.find(item => item.slug === values[0]); return { rows: row ? [{ ...row, owner_role: "admin" }] : [], rowCount: row ? 1 : 0 }; }
+    if (q.includes("from characters c join users u") && q.includes("where c.id=$1")) { const row = characterRows.find(item => item.id === Number(values[0])); return { rows: row ? [{ ...row, owner: "arquivista-teste" }] : [], rowCount: row ? 1 : 0 }; }
+    if (q.includes("from characters c join users u") && q.includes("order by coalesce")) { return { rows: characterRows.map(row => ({ ...row, owner: "arquivista-teste", access_count: 0 })), rowCount: characterRows.length }; }
+    if (q.includes("select target_type,target_id from universe_links")) { const rows = universeLinks.filter(link => link.source_type === "character-sheet" && link.source_id === String(values[0])).map(link => ({ target_type: link.target_type, target_id: link.target_id })); return { rows, rowCount: rows.length }; }
+    if (q.includes("delete from universe_links where source_type='character-sheet'")) { for (let index = universeLinks.length - 1; index >= 0; index--) if (universeLinks[index].source_type === "character-sheet" && universeLinks[index].source_id === String(values[0])) universeLinks.splice(index, 1); return { rows: [], rowCount: 1 }; }
+    if (q.includes("insert into universe_links")) { universeLinks.push({ source_type: values[0], source_id: String(values[1]), relation: values[2], target_type: values[3], target_id: String(values[4]) }); return { rows: [{ id: universeLinks.length }], rowCount: 1 }; }
+    if (q.includes("select 1 from character_access")) { const rows = characterAccess.filter(row => row.character_id === Number(values[0]) && row.user_id === Number(values[1])); return { rows: rows.map(() => ({ one: 1 })), rowCount: rows.length }; }
+    if (q.includes("insert into character_access")) { const exists = characterAccess.some(row => row.character_id === Number(values[0]) && row.user_id === Number(values[1])); if (!exists) characterAccess.push({ character_id: Number(values[0]), user_id: Number(values[1]) }); return { rows: exists ? [] : [{ user_id: Number(values[1]) }], rowCount: exists ? 0 : 1 }; }
+    if (q.includes("delete from character_access")) { const index = characterAccess.findIndex(row => row.character_id === Number(values[0]) && row.user_id === Number(values[1])); if (index < 0) return { rows: [], rowCount: 0 }; characterAccess.splice(index, 1); return { rows: [], rowCount: 1 }; }
     if (q.includes("from characters where user_id=$1")) { const rows = characterRows.filter(row => row.user_id === Number(values[0])); return { rows, rowCount: rows.length }; }
-    if (q.includes("insert into characters")) { const row = { id: 31, user_id: Number(values[0]), name: values[1], race: values[2], class_name: values[3], st: values[4], dx: values[5], iq: values[6], ht: values[7], san: values[8], life: values[9], inventory: values[10], skills: values[11], backstory: values[12], title: values[14], origin: values[15], veil: values[16], created_at: new Date(), updated_at: new Date() }; characterRows.push(row); return { rows: [{ id: row.id, name: row.name }], rowCount: 1 }; }
-    if (q.includes("update characters set")) { const row = characterRows.find(item => item.id === Number(values[16]) && item.user_id === Number(values[17])); return { rows: row ? [{ id: row.id, name: values[0] }] : [], rowCount: row ? 1 : 0 }; }
+    if (q.includes("insert into characters")) {
+      const id = characterRows.length ? Math.max(...characterRows.map(row => row.id)) + 1 : 31;
+      const admin = q.includes("slug,title,race");
+      const row = admin
+        ? { id, user_id: Number(values[0]), name: values[1], slug: values[2], title: values[3], race: values[4], class_name: values[5], origin: values[6], veil: values[7], summary: values[8], image_url: values[9], status: values[10], inventory: values[11], skills: values[12], backstory: values[13], visible_on_profile: values[14], published_at: values[10] === "public" ? new Date() : null, st: null, dx: null, iq: null, ht: null, san: null, life: null, created_at: new Date(), updated_at: new Date() }
+        : { id, user_id: Number(values[0]), name: values[1], slug: values[2], race: values[3], class_name: values[4], st: values[5], dx: values[6], iq: values[7], ht: values[8], san: values[9], life: values[10], inventory: values[11], skills: values[12], backstory: values[13], visible_on_profile: values[14], title: values[15], origin: values[16], veil: values[17], summary: values[18], image_url: values[19], status: values[20], published_at: values[20] === "public" ? new Date() : null, created_at: new Date(), updated_at: new Date() };
+      characterRows.push(row); return { rows: [{ id: row.id, name: row.name, slug: row.slug, status: row.status }], rowCount: 1 };
+    }
+    if (q.includes("update characters set") && q.includes("title=$3")) {
+      const row = characterRows.find(item => item.id === Number(values[14]));
+      if (!row) return { rows: [], rowCount: 0 };
+      Object.assign(row, { name: values[0], slug: values[1], title: values[2], race: values[3], class_name: values[4], origin: values[5], veil: values[6], summary: values[7], image_url: values[8], status: values[9], inventory: values[10], skills: values[11], backstory: values[12], visible_on_profile: values[13], published_at: values[9] === "public" ? new Date() : null });
+      return { rows: [{ id: row.id, name: row.name, slug: row.slug, status: row.status }], rowCount: 1 };
+    }
+    if (q.includes("update characters set")) {
+      const row = characterRows.find(item => item.id === Number(values[20]) && item.user_id === Number(values[21]));
+      if (!row) return { rows: [], rowCount: 0 };
+      Object.assign(row, { name: values[0], slug: values[1], race: values[2], class_name: values[3], st: values[4], dx: values[5], iq: values[6], ht: values[7], san: values[8], life: values[9], inventory: values[10], skills: values[11], backstory: values[12], visible_on_profile: values[13], title: values[14], origin: values[15], veil: values[16], summary: values[17], image_url: values[18], status: values[19], published_at: values[19] === "public" ? new Date() : null });
+      return { rows: [{ id: row.id, name: row.name, slug: row.slug, status: row.status }], rowCount: 1 };
+    }
     if (q.includes("delete from characters where id=$1 and user_id=$2")) { const index = characterRows.findIndex(row => row.id === Number(values[0]) && row.user_id === Number(values[1])); if (index < 0) return { rows: [], rowCount: 0 }; characterRows.splice(index, 1); return { rows: [], rowCount: 1 }; }
+    if (q.includes("delete from characters where id=$1")) { const index = characterRows.findIndex(row => row.id === Number(values[0])); if (index < 0) return { rows: [], rowCount: 0 }; characterRows.splice(index, 1); return { rows: [], rowCount: 1 }; }
     if (q.includes("from community_messages m join users") && q.includes("where ($1::bigint=0")) { const after = BigInt(values[0]), rows = communityMessages.filter(item => after === 0n || BigInt(item.id) > after).sort((a,b) => Number(b.id)-Number(a.id)).slice(0,100).reverse().map(item => ({ ...item, author: [...registeredUsers.values()].find(user => user.id === item.user_id)?.username || "arquivista-teste", role: [...registeredUsers.values()].find(user => user.id === item.user_id)?.role || "admin" })); return { rows, rowCount: rows.length }; }
     if (q.includes("from community_messages m join users") && q.includes("order by m.id desc")) return { rows: communityMessages.slice().reverse().slice(0,100).map(item => ({ ...item, author: [...registeredUsers.values()].find(user => user.id === item.user_id)?.username || "arquivista-teste", role: [...registeredUsers.values()].find(user => user.id === item.user_id)?.role || "admin" })), rowCount: communityMessages.length };
     if (q.includes("insert into community_messages")) { const row = { id: 41 + communityMessages.length, user_id: Number(values[0]), content: values[1], created_at: new Date() }; communityMessages.push(row); return { rows: [row], rowCount: 1 }; }
@@ -226,6 +270,11 @@ test("Personagens: fichas autenticadas ficam restritas ao dono e validam atribut
   const created = await callApi("POST", "/api/me/characters", payload, headers);
   assert.equal(created.status, 201);
   assert.equal(created.json.name, "Ari");
+  assert.equal(created.json.slug, "ari");
+  assert.equal(created.json.status, "private");
+  assert.equal((await callApi("POST", "/api/me/characters", { ...payload, name: "Ari Público", status: "public" }, headers)).status, 422);
+  assert.equal((await callApi("PUT", "/api/me/characters/31", { ...payload, status: "public" }, headers)).status, 403);
+  assert.equal((await callApi("GET", "/api/characters/ari")).status, 404);
   assert.equal((await callApi("GET", "/api/me/characters/31", undefined, { cookie })).status, 200);
   assert.deepEqual([characterRows.at(-1).title, characterRows.at(-1).origin, characterRows.at(-1).veil], ["Viajante", "Da'kor", "Material"]);
   assert.equal((await callApi("GET", "/api/me/characters/31/links", undefined, { cookie })).status, 200);
@@ -338,6 +387,58 @@ test("Chat da comunidade: cadastro comum, histórico, autoria, validação e mod
   const history = await callApi("GET", "/api/community/messages?after=0", undefined, { cookie: firstCookie });
   assert.equal(history.json.messages[0].content, "Saudações da mata.");
   assert.equal(history.json.messages[0].author, "sombra");
+});
+
+test("Personagens públicos: visitante lê, ficha privada permanece oculta e acesso restrito é liberado pelo admin", async () => {
+  const admin = await login();
+  const adminHeaders = { cookie: admin.headers["Set-Cookie"].split(";")[0], "x-csrf-token": admin.json.csrf };
+  const payload = { name: "Lira do Véu", title: "Guardiã", race: "Humana", class_name: "Cartógrafa", origin: "Da'kor", veil: "Material", summary: "Uma guardiã das passagens.", status: "public", inventory: "Lanterna", skills: "Rastrear", backstory: "Guarda o caminho entre os véus.", related_regions: "dakor", related_events: "retorno", related_lore: "os-sete-veus" };
+  const created = await callApi("POST", "/api/admin/characters", payload, adminHeaders);
+  assert.equal(created.status, 201);
+  assert.equal(created.json.status, "public");
+  assert.equal(created.json.slug, "lira-do-veu");
+  const id = created.json.id;
+
+  const listed = await callApi("GET", "/api/characters");
+  assert.equal(listed.status, 200);
+  const card = listed.json.characters.find(item => item.slug === "lira-do-veu");
+  assert.ok(card);
+  assert.equal(card.user_id, undefined);
+  assert.equal((await callApi("GET", "/api/characters?q=lira")).json.characters.length, 1);
+
+  const detail = await callApi("GET", "/api/characters/lira-do-veu");
+  assert.equal(detail.status, 200);
+  assert.equal(detail.json.character.name, "Lira do Véu");
+  assert.equal(detail.json.character.user_id, undefined);
+  assert.equal(detail.json.character.owner_role, undefined);
+  assert.equal(detail.json.character.can_edit, false);
+
+  const links = await callApi("GET", `/api/links?type=character-sheet&id=${id}`);
+  assert.equal(links.status, 200);
+  assert.deepEqual(links.json.links.map(link => link.kind).sort(), ["event", "lore", "region"]);
+  assert.equal((await callApi("GET", "/api/characters/ari")).status, 404);
+
+  const restricted = await callApi("POST", "/api/admin/characters", { ...payload, name: "Eco Restrito", status: "restricted", related_regions: "", related_events: "", related_lore: "" }, adminHeaders);
+  assert.equal(restricted.status, 201);
+  assert.equal(restricted.json.status, "restricted");
+  const restrictedId = restricted.json.id;
+  assert.equal((await callApi("GET", "/api/characters/eco-restrito")).status, 404);
+
+  const reader = await callApi("POST", "/api/login", { username: "sombra", password: "senha-comprida-para-chat" });
+  const readerCookie = reader.headers["Set-Cookie"].split(";")[0];
+  assert.equal((await callApi("GET", "/api/characters/eco-restrito", undefined, { cookie: readerCookie })).status, 404);
+  const granted = await callApi("POST", `/api/admin/characters/${restrictedId}/access`, { user_id: 50 }, adminHeaders);
+  assert.equal(granted.status, 201);
+  const authorized = await callApi("GET", "/api/characters/eco-restrito", undefined, { cookie: readerCookie });
+  assert.equal(authorized.status, 200);
+  assert.equal(authorized.json.character.status, "restricted");
+  assert.equal(authorized.json.character.user_id, undefined);
+
+  assert.equal((await callApi("DELETE", `/api/admin/characters/${restrictedId}/access/50`, undefined, adminHeaders)).status, 200);
+  assert.equal((await callApi("GET", "/api/characters/eco-restrito", undefined, { cookie: readerCookie })).status, 404);
+  assert.equal((await callApi("DELETE", `/api/admin/characters/${id}`, undefined, adminHeaders)).status, 200);
+  assert.equal((await callApi("DELETE", `/api/admin/characters/${restrictedId}`, undefined, adminHeaders)).status, 200);
+  assert.equal((await callApi("GET", "/api/characters/lira-do-veu")).status, 404);
 });
 
 test("Painel: dashboard e gestão de funções exigem administrador; a sessão acompanha mudanças", async () => {

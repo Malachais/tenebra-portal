@@ -26,6 +26,7 @@
       <a href="#registros">Registros</a>
       <a href="#grimorio">Grimório</a>
       <a href="#bestiario-admin">Bestiário</a>
+      <a href="#personagens-admin">Personagens</a>
       <a href="#eventos-admin">Eventos</a>
       <a href="#mapa-admin">Mapa</a>
       <a href="#conquistas-admin">Conquistas</a>
@@ -80,6 +81,11 @@
     <section class="panel" id="bestiario-admin" data-reveal>
       <div class="panel-head panel-head-actions"><div><h2>Bestiário</h2><p class="muted">Ameaça e atributos permanecem sem classificação quando o arquivo não os confirma.</p></div><button class="button button-dark" id="newMonsterBtn" type="button">Nova criatura <span>+</span></button></div>
       <div class="admin-lore-grid" id="monsterAdminList" aria-live="polite"><p class="muted">Carregando criaturas…</p></div>
+    </section>
+
+    <section class="panel" id="personagens-admin" data-reveal>
+      <div class="panel-head panel-head-actions"><div><h2>Personagens do universo</h2><p class="muted">Publique apenas fichas autorizadas para o elenco. Fichas privadas de jogadores nunca são publicadas automaticamente.</p></div><button class="button button-dark" id="newCharacterAdminBtn" type="button">Novo personagem <span>+</span></button></div>
+      <div class="admin-lore-grid" id="characterAdminList" aria-live="polite"><p class="muted">Carregando personagens…</p></div>
     </section>
 
     <section class="panel" id="eventos-admin" data-reveal>
@@ -174,6 +180,37 @@
       <label class="field span-2"><span>Fraquezas</span><textarea id="monsterWeaknessesField" rows="3" maxlength="3000"></textarea></label>
       <label class="check span-2"><input type="checkbox" id="monsterPublishedField"><span>Publicado no Bestiário</span></label>
       <div class="span-2 form-actions"><button class="button button-dark" type="submit">Salvar criatura <span>✓</span></button><button class="text-link" id="monsterEditCancel" type="button">Cancelar</button></div>
+    </form>
+  </dialog>
+  <dialog class="record-dialog edit-dialog" id="characterAdminDialog">
+    <button class="dialog-close" id="characterAdminClose" type="button" aria-label="Fechar">×</button>
+    <p class="eyebrow" id="characterAdminEyebrow">Elenco do universo</p>
+    <h2 id="characterAdminHeading">Novo personagem</h2>
+    <div class="flash flash-err" id="characterAdminError" role="alert" hidden></div>
+    <form class="form-grid" id="characterAdminForm">
+      <label class="field span-2"><span>Nome</span><input id="characterAdminName" maxlength="120" required></label>
+      <label class="field span-2"><span>Título (opcional)</span><input id="characterAdminTitle" maxlength="120"></label>
+      <label class="field"><span>Raça</span><input id="characterAdminRace" maxlength="80" required></label>
+      <label class="field"><span>Classe</span><input id="characterAdminClass" maxlength="80" required></label>
+      <label class="field"><span>Origem (opcional)</span><input id="characterAdminOrigin" maxlength="120"></label>
+      <label class="field"><span>Véu (opcional)</span><input id="characterAdminVeil" maxlength="120"></label>
+      <label class="field"><span>Status</span><select id="characterAdminStatus"><option value="draft">Rascunho</option><option value="private" selected>Ficha privada</option><option value="restricted">Acesso restrito</option><option value="public">Publicado no universo</option></select></label>
+      <label class="field"><span>Imagem (URL ou caminho opcional)</span><input id="characterAdminImage" maxlength="1000" placeholder="https://… ou /img/…"></label>
+      <label class="field span-2"><span>Resumo público (até 280 caracteres)</span><textarea id="characterAdminSummary" rows="2" maxlength="280"></textarea></label>
+      <label class="field"><span>ST</span><input id="characterAdminST" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field"><span>DX</span><input id="characterAdminDX" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field"><span>IQ</span><input id="characterAdminIQ" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field"><span>HT</span><input id="characterAdminHT" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field"><span>SAN</span><input id="characterAdminSAN" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field"><span>Vida</span><input id="characterAdminLife" type="number" min="0" max="999999999.999" step="0.001" inputmode="decimal"></label>
+      <label class="field span-2"><span>Inventário</span><textarea id="characterAdminInventory" rows="3" maxlength="10000"></textarea></label>
+      <label class="field span-2"><span>Habilidades</span><textarea id="characterAdminSkills" rows="3" maxlength="8000"></textarea></label>
+      <label class="field span-2"><span>História</span><textarea id="characterAdminBackstory" rows="6" maxlength="20000"></textarea></label>
+      <label class="field"><span>Regiões relacionadas (slugs, separados por vírgula)</span><input id="characterAdminRegions" maxlength="600"></label>
+      <label class="field"><span>Eventos relacionados (slugs)</span><input id="characterAdminEvents" maxlength="600"></label>
+      <label class="field span-2"><span>Grimório relacionado (slugs)</span><input id="characterAdminLore" maxlength="600"></label>
+      <label class="check span-2"><input id="characterAdminVisible" type="checkbox"><span>Exibir nome, raça e classe no perfil do proprietário</span></label>
+      <div class="span-2 form-actions"><button class="button button-dark" type="submit">Salvar personagem <span>✓</span></button><button class="text-link" id="characterAdminCancel" type="button">Cancelar</button></div>
     </form>
   </dialog>
 </body>

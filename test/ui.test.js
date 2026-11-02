@@ -27,3 +27,19 @@ test("Placeholder HTML: usa árvore SVG e interrogação sem imagem externa", ()
   onError({ target: broken });
   assert.equal(broken.fallbackClass, "is-missing");
 });
+
+test("Personagens públicos: index e detalhe têm scripts próprios e leem slug de rota limpa", () => {
+  const index = fs.readFileSync("characters.html", "utf8");
+  const detail = fs.readFileSync("character.html", "utf8");
+  assert.match(index, /js\/public-characters\.js/);
+  assert.match(index, /id="publicCharacterEntries"/);
+  assert.match(detail, /js\/character-page\.js/);
+  assert.match(detail, /id="characterTitle"/);
+  for (const file of ["js/character-page.js", "js/article.js", "js/lore.js", "js/monster-page.js"]) {
+    const source = fs.readFileSync(file, "utf8");
+    assert.match(source, /location\.pathname\.split\("\/"\)/, `${file} deve aceitar rota limpa`);
+  }
+  const page = fs.readFileSync("js/character-page.js", "utf8");
+  assert.match(page, /character\.can_edit/);
+  assert.match(page, /\/api\/links\?type=character-sheet/);
+});

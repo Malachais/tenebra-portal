@@ -74,9 +74,9 @@ Execute os testes isolados com:
 npm test
 ```
 
-Os testes cobrem rotas, login, função administrativa, chat, dados do portal, comportamento do seed e mensagens de inicialização PostgreSQL; serviços reais permanecem necessários para importação ponta a ponta. Para os testes ponta a ponta, inicie PostgreSQL e o servidor e use uma chave OpenRouter válida.
+Os testes cobrem rotas, login, função administrativa, chat, dados do portal, personagens públicos e restritos, permissões de publicação, comportamento do seed e mensagens de inicialização PostgreSQL; serviços reais permanecem necessários para importação ponta a ponta. Para os testes ponta a ponta, inicie PostgreSQL e o servidor e use uma chave OpenRouter válida.
 
-Na primeira inicialização, a aplicação aplica as migrations pendentes em ordem e insere vinte registros de exemplo (cinco por categoria). `002_chat_and_roles.sql` adiciona a função dos usuários e o armazenamento das conversas; `003_grimoire.sql` cria páginas categorizadas do Grimório, `004_bestiary.sql` importa criaturas legadas sem duplicá-las, `005_characters.sql` cria fichas privadas, `006_community_chat.sql` adiciona o chat da comunidade e permissões, `007_admin_console.sql` dá suporte ao painel, e `008_events.sql`, `009_regions.sql` e `010_profiles_achievements.sql` adicionam calendário, atlas, perfis e conquistas; `011_lore_imports.sql` amplia categorias do Grimório, vincula importações legadas e marca dados incompletos do Bestiário sem apagar conteúdo. Todas são incrementais e preservam dados existentes. As contas e hashes de senha são mantidos no PostgreSQL; garanta `merjin` com `npm run admin:create`. As próximas inicializações preservam os dados.
+Na primeira inicialização, a aplicação aplica as migrations pendentes em ordem e insere vinte registros de exemplo (cinco por categoria). `002_chat_and_roles.sql` adiciona a função dos usuários e o armazenamento das conversas; `003_grimoire.sql` cria páginas categorizadas do Grimório, `004_bestiary.sql` importa criaturas legadas sem duplicá-las, `005_characters.sql` cria fichas privadas, `006_community_chat.sql` adiciona o chat da comunidade e permissões, `007_admin_console.sql` dá suporte ao painel, e `008_events.sql`, `009_regions.sql` e `010_profiles_achievements.sql` adicionam calendário, atlas, perfis e conquistas; `011_lore_imports.sql` amplia categorias do Grimório, vincula importações legadas e marca dados incompletos do Bestiário sem apagar conteúdo; `012_campaign_timeline_links.sql` liga campanhas, linha do tempo e relações entre conteúdos; `013_custom_roll_history.sql` guarda rolagens personalizadas; `014_public_characters.sql` adiciona slug, status editorial, resumo, imagem, data de publicação, controle de acesso restrito e imagens opcionais para regiões e eventos. Todas são incrementais e preservam dados existentes. As contas e hashes de senha são mantidos no PostgreSQL; garanta `merjin` com `npm run admin:create`. As próximas inicializações preservam os dados.
 
 ### PostgreSQL local não inicia
 
@@ -101,12 +101,15 @@ Configure `OPENROUTER_API_KEY` e `OPENROUTER_MODEL` no `.env`, reinicie o servid
 - Grimório com busca, categorias, páginas próprias e edição pelo painel.
 - Bestiário com fichas públicas e gestão administrativa.
 - Fichas privadas com validação numérica no cliente e servidor e rolador 3d8 no servidor; rolagens autenticadas podem ser guardadas por ficha.
+- Elenco público do universo separado das fichas de jogadores: visitantes leem `/personagens` e `/personagens/:slug` sem login, enquanto fichas privadas continuam restritas ao dono e à administração.
+- Status editoriais de personagem: `draft` (rascunho), `private` (dono/admin), `restricted` (usuários autorizados) e `public` (qualquer visitante). Somente administradores publicam, restringem ou removem personagens publicados; o dono controla rascunho e ficha privada.
+- Administração do elenco em `/admin.html`: criar, editar, publicar, despublicar, excluir, relacionar regiões/eventos/Grimório e liberar acesso a fichas restritas. Slugs são gerados automaticamente e a publicação define a data pública.
 - Chat comunitário autenticado com histórico, polling e moderação.
 - Eventos com inscrição limitada por transação e páginas individuais.
 - Campanhas gerenciáveis pelo painel, inscrição, diário com controle de visibilidade e linha do tempo de eventos e fatos históricos datados.
 - Relações administráveis entre registros do Grimório, criaturas, regiões, eventos, campanhas e fichas, exibidas nas páginas públicas conforme a visibilidade.
 - Atlas de regiões, perfis públicos e conquistas concedidas manualmente.
-- Páginas individuais por slug em `/registro/slug-do-artigo`.
+- Páginas individuais por slug em `/registro/slug-do-artigo`, `/personagens/slug-do-personagem` e demais seções editoriais.
 - Painel editorial em `/login.html` e `/admin.html`: criação, edição, publicação, ocultação e remoção de artigos, mais alteração de senha.
 - PostgreSQL com datas de criação/atualização, autoria e imagem opcional.
 - Vantagem, desvantagem e Saque Rápido permanecem bloqueados até a documentação da regra oficial; o sistema não presume fórmulas.
@@ -121,6 +124,7 @@ server.js                 servidor HTTP, APIs, OpenRouter e inicialização
 migrations/                esquema PostgreSQL, registros iniciais e upgrades incrementais
 index.html                página inicial, filtros e Oráculo
 article.html              página-base para artigo individual
+characters.html / character.html  elenco público e ficha pública por slug
 login.html / admin.html   login e painel editorial do portal
 css/                      identidade visual, responsividade e movimento
 js/                       APIs de tela, eventos, mapa, perfis, chat e painel
